@@ -45,6 +45,7 @@ model Edzes {
   edzes_neve     String
   datum          DateTime
   user_id        Int
+  ido            Int
   user           User               @relation(fields: [user_id], references: [user_id]) // Many-to-one relationship to User
   edzestervek    Edzesterv_Edzes[]   // Many-to-many relationship to Edzesterv
   gyakorlatok    Edzes_Gyakorlat[]   // Many-to-many relationship to Gyakorlat
