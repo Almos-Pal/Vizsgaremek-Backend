@@ -20,6 +20,7 @@ model User {
   username    String
   email       String
   password    String
+  gyakorlatok User_Gyakorlat[]
   edzestervek Edzesterv[]
   edzesek     Edzes[]
 
@@ -64,6 +65,15 @@ model Edzesterv_Edzes {
 }
 
 
+model User_Gyakorlat {
+  user_id     Int
+  gyakorlat_id Int
+  user        User     @relation(fields: [user_id], references: [user_id])
+  gyakorlat    Gyakorlat @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
+
+  @@id([user_id, gyakorlat_id]) // Composite primary key
+}
+
 // GYAKORLAT TABLE
 model Gyakorlat {
   gyakorlat_id     Int                  @id @default(autoincrement())
@@ -71,6 +81,8 @@ model Gyakorlat {
   personal_best    Int?
   eszkoz           String?
   gyakorlat_leiras String?
+  user_id          Int? //optional foreign key for user_id to identify the user who created the exercise
+  users            User_Gyakorlat[]              // Many-to-many relationship to User
   sets             Set[]               // One-to-many relationship to Set
   edzesek          Edzes_Gyakorlat[]    // Many-to-many relationship to Edzes
   izomcsoportok    Gyakorlat_Izomcsoport[] // Many-to-many relationship to Izomcsoport
