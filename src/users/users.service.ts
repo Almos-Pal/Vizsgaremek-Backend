@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class UsersService {
+  constructor(private readonly db: PrismaService) {}
+
   create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+    return this.db.user.create({
+      data: createUserDto,
+    });
   }
+  
 
   findAll() {
-    return `This action returns all users`;
+    return this.db.user.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const user = await this.db.user.findUnique({
+      where: { user_id: id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    } else {
+      return user;
+    }
+
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    try {
+      const user = await this.db.user.update({ where: { user_id: id }, data: updateUserDto });
+      return user;
+    } catch (error) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    try {
+      const user = await this.db.user.delete({
+        where: { user_id: id },
+      });
+      return user;
+    } catch (error) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
   }
 }
