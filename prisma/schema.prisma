@@ -79,7 +79,7 @@ model User_Gyakorlat {
 model Gyakorlat {
   gyakorlat_id     Int                  @id @default(autoincrement())
   gyakorlat_neve   String
-  personal_best    Int?
+  personal_best    Float?
   eszkoz           String?
   gyakorlat_leiras String?
   user_id          Int? //optional foreign key for user_id to identify the user who created the exercise
