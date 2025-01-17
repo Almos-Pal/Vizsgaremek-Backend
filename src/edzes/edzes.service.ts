@@ -32,17 +32,25 @@ export class EdzesService {
       edzes_id: id,
     },});
   }catch(e){
-    return "Nincs ilyen azonosítóval rendelkező edzés!";
+    return `Edzés with ID ${id} not found`;
   }
   }
 
-  update(id: number, updateEdzesDto: UpdateEdzesDto) {
-    return this.db.edzes.update({where:{
+ async update(id: number, updateEdzesDto: UpdateEdzesDto) {
+  try{
+
+    return await this.db.edzes.update({where:{
       edzes_id:id
     },data:updateEdzesDto});
-    }
+  }catch(e){
+  return `Edzés with ID ${id} not found`;
+}}
 
-  remove(id: number) {
-    return this.db.edzes.delete({where:{edzes_id:id}}); 
-  }
+ async remove(id: number) {
+  try{
+
+    return await this.db.edzes.delete({where:{edzes_id:id}}); 
+  }catch(e){
+    return `Edzés with ID ${id} not found`;
+}}
 }
