@@ -18,7 +18,7 @@ datasource db {
 model User {
   user_id     Int       @id @default(autoincrement())
   username    String
-  email       String
+  email       String @unique
   password    String
   gyakorlatok User_Gyakorlat[]
   edzestervek Edzesterv[]

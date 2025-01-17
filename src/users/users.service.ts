@@ -7,13 +7,22 @@ import { PrismaService } from 'src/prisma.service';
 export class UsersService {
   constructor(private readonly db: PrismaService) {}
 
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
+    const existingUser = await this.db.user.findUnique({
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUser) {
+      throw new Error('Email already in use');
+    }
+
     return this.db.user.create({
-      data: createUserDto,
+      data: {
+        ...createUserDto,
+      }
     });
   }
   
-
   findAll() {
     return this.db.user.findMany();
   }
