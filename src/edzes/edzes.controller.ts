@@ -18,17 +18,17 @@ export class EdzesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.edzesService.findOne(+id);
+ async findOne(@Param('id') id: string) {
+    return await this.edzesService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEdzeDto: UpdateEdzesDto) {
-    return this.edzesService.update(+id, updateEdzeDto);
+ async update(@Param('id') id: string, @Body() updateEdzeDto: UpdateEdzesDto) {
+    return await this.edzesService.update(+id, updateEdzeDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.edzesService.remove(+id);
+ async remove(@Param('id') id: string) {
+    return await this.edzesService.remove(+id);
   }
 }
