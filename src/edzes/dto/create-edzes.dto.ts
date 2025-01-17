@@ -7,7 +7,7 @@ export class CreateEdzesDto {
         edzes_neve: string;
         
         @IsDefined()
-       // @IsDate()
+        @IsDate()
         datum: Date;
 
         @IsOptional()

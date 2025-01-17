@@ -25,10 +25,15 @@ export class EdzesService {
     return this.db.edzes.findMany();
   }
 
-  findOne(id: number) {
-    return this.db.edzes.findUniqueOrThrow({where: {
+ async findOne(id: number) {
+  try{
+
+    return await this.db.edzes.findUniqueOrThrow({where: {
       edzes_id: id,
     },});
+  }catch(e){
+    return "Nincs ilyen azonosítóval rendelkező edzés!";
+  }
   }
 
   update(id: number, updateEdzesDto: UpdateEdzesDto) {
