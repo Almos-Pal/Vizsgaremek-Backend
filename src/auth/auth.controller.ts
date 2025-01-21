@@ -1,9 +1,10 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { Body } from '@nestjs/common';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
+import { RefreshJwtGuard } from './guards/refresh.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -20,5 +21,12 @@ export class AuthController {
     @Post('login')
     async login(@Body() createUserDto: LoginDto) {
        return await this.authService.login(createUserDto);
+    }
+
+    @UseGuards(RefreshJwtGuard)
+    @Post('refresh') 
+    async refreshToken(@Request() req) {
+        return await this.authService.refreshToken(req.user);
+
     }
 }
