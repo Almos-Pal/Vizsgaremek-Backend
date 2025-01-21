@@ -10,9 +10,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-        const existingUser = await this.db.user.findUnique({
-            where: { email: createUserDto.email },
-        });
+      const existingUser = await this.findByEmail(createUserDto.email)
 
         if (existingUser) {
             throw new BadRequestException('Email already in use');
