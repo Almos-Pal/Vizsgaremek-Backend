@@ -14,6 +14,7 @@ export class AuthService {
 
 
     async login(loginDto: LoginDto) {
+
         const user = await this.validateUser(loginDto);
         const payload = {
             email:user.email,
@@ -21,17 +22,19 @@ export class AuthService {
                 username: user.username
             }
         }
-
+        
         return {
             user,
             backendTokens: {
                 accessToken: await this.jwtService.signAsync(payload, {
                     expiresIn: '1h',
                     secret: process.env.JWT_SECRET,
+                    algorithm: 'HS256',
                 }),
                 refreshToken: await this.jwtService.signAsync(payload, {
                     expiresIn: '7d',
                     secret: process.env.JWT_REFRESH_TOKEN_KEY,
+                    algorithm: 'HS256',
                 })
             }
         }
@@ -60,10 +63,12 @@ export class AuthService {
             accessToken: await this.jwtService.signAsync(payload, {
                 expiresIn: '1h',
                 secret: process.env.JWT_SECRET,
+                algorithm: 'HS256',
             }),
             refreshToken: await this.jwtService.signAsync(payload, {
                 expiresIn: '7d',
                 secret: process.env.JWT_REFRESH_TOKEN_KEY,
+                algorithm: 'HS256',
             })
         }
     }
