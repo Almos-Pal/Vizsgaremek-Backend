@@ -1,0 +1,120 @@
+openapi: 3.0.0
+paths:
+  /:
+    get:
+      operationId: AppController_getHello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - App
+  /edzes:
+    post:
+      operationId: EdzesController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEdzesDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Edzes
+    get:
+      operationId: EdzesController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Edzes
+  /edzes/{id}:
+    get:
+      operationId: EdzesController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Edzes
+    patch:
+      operationId: EdzesController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEdzesDto'
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Edzes
+    delete:
+      operationId: EdzesController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Edzes
+info:
+  title: Edzés teszt
+  description: Edzés CRUD
+  version: '1.0'
+  contact: {}
+tags:
+  - name: Edzes
+    description: ''
+servers: []
+components:
+  schemas:
+    CreateEdzesDto:
+      type: object
+      properties:
+        edzes_neve:
+          type: string
+        datum:
+          format: date-time
+          type: string
+        user_id:
+          type: number
+        ido:
+          type: number
+      required:
+        - edzes_neve
+        - datum
+        - user_id
+        - ido
+    UpdateEdzesDto:
+      type: object
+      properties:
+        edzes_neve:
+          type: string
+        datum:
+          format: date-time
+          type: string
+        user_id:
+          type: number
+        ido:
+          type: number
