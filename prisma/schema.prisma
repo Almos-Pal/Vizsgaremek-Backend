@@ -18,7 +18,7 @@ datasource db {
 model User {
   user_id     Int       @id @default(autoincrement())
   username    String
-  email       String
+  email       String @unique
   password    String
   gyakorlatok User_Gyakorlat[]
   edzestervek Edzesterv[]
@@ -44,9 +44,9 @@ model Edzes {
   edzes_id       Int                 @id @default(autoincrement())
   edzes_neve     String
   datum          DateTime
-  user_id        Int
+  user_id        Int?
   ido            Int
-  user           User               @relation(fields: [user_id], references: [user_id]) // Many-to-one relationship to User
+  user           User?               @relation(fields: [user_id], references: [user_id]) // Many-to-one relationship to User
   edzestervek    Edzesterv_Edzes[]   // Many-to-many relationship to Edzesterv
   gyakorlatok    Edzes_Gyakorlat[]   // Many-to-many relationship to Gyakorlat
   cardiok        Edzes_Cardio[]      // Many-to-many relationship to Cardio
@@ -79,7 +79,7 @@ model User_Gyakorlat {
 model Gyakorlat {
   gyakorlat_id     Int                  @id @default(autoincrement())
   gyakorlat_neve   String
-  personal_best    Int?
+  personal_best    Float?
   eszkoz           String?
   gyakorlat_leiras String?
   user_id          Int? //optional foreign key for user_id to identify the user who created the exercise
