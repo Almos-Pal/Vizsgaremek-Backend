@@ -17,10 +17,9 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-  .setTitle('Edzés teszt')
-  .setDescription('Edzés CRUD')
+  .setTitle('RepVault')
+  .setDescription('RepVault API')
   .setVersion('1.0')
-  .addTag('Edzes')
   .build();
 
 const documentFactory = () => SwaggerModule.createDocument(app, config);
@@ -28,7 +27,12 @@ SwaggerModule.setup('api', app, documentFactory);
 
 
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    }
+  }));
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
