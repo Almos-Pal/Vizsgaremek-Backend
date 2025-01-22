@@ -1,0 +1,175 @@
+openapi: 3.0.0
+paths:
+  /edzes:
+    post:
+      operationId: EdzesController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEdzesDto'
+      responses:
+        '201':
+          description: Exercise has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '400':
+          description: Bad Request - Invalid data provided.
+      summary: Create a new exercise
+      tags:
+        - Edzes
+    get:
+      operationId: EdzesController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: Returns all exercises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Edzes'
+      summary: Get all exercises
+      tags:
+        - Edzes
+  /edzes/{id}:
+    get:
+      operationId: EdzesController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Returns the exercise
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: Exercise not found
+      summary: Get exercise by id
+      tags:
+        - Edzes
+    patch:
+      operationId: EdzesController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEdzesDto'
+      responses:
+        '200':
+          description: Exercise has been successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '400':
+          description: Bad Request - Invalid data provided
+        '404':
+          description: Exercise not found
+      summary: Update exercise by id
+      tags:
+        - Edzes
+    delete:
+      operationId: EdzesController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Exercise has been successfully deleted
+        '404':
+          description: Exercise not found
+      summary: Delete exercise by id
+      tags:
+        - Edzes
+info:
+  title: RepVault
+  description: RepVault API
+  version: '1.0'
+  contact: {}
+tags: []
+servers: []
+components:
+  schemas:
+    CreateEdzesDto:
+      type: object
+      properties:
+        edzes_neve:
+          type: string
+        datum:
+          format: date-time
+          type: string
+          example: '2024-03-20T15:30:00.000Z'
+          description: Date of the exercise
+        user_id:
+          type: number
+        ido:
+          type: number
+      required:
+        - edzes_neve
+        - datum
+        - user_id
+        - ido
+    Edzes:
+      type: object
+      properties:
+        edzes_id:
+          type: number
+          example: 1
+          description: The unique identifier of the exercise
+        edzes_neve:
+          type: string
+          example: Morning Workout
+          description: Name of the exercise
+        datum:
+          format: date-time
+          type: string
+          example: '2024-03-20T15:30:00.000Z'
+          description: Date of the exercise
+        user_id:
+          type: number
+          example: 1
+          description: User ID associated with the exercise
+        ido:
+          type: number
+          example: 60
+          description: Duration of the exercise in minutes
+      required:
+        - edzes_id
+        - edzes_neve
+        - datum
+        - ido
+    UpdateEdzesDto:
+      type: object
+      properties:
+        edzes_neve:
+          type: string
+        datum:
+          format: date-time
+          type: string
+          example: '2024-03-20T15:30:00.000Z'
+          description: Date of the exercise
+        user_id:
+          type: number
+        ido:
+          type: number
