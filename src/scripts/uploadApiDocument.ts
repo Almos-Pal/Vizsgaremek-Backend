@@ -53,8 +53,8 @@ if (!fs.existsSync(docsPath)) {
 // Use an async IIFE (Immediately Invoked Function Expression) to handle async/await
 (async () => {
     try {
-        console.log('Fetching data from http://localhost:3000/api-yaml...');
-        const response = await fetch('http://localhost:3000/api-yaml');
+        console.log('Fetching data from http://localhost:8000/api-yaml...');
+        const response = await fetch('http://localhost:8000/api-yaml');
         
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);

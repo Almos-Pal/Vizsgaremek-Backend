@@ -102,6 +102,100 @@ paths:
       summary: Delete exercise by id
       tags:
         - Edzes
+  /users:
+    get:
+      operationId: UsersController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+  /users/{id}:
+    get:
+      operationId: UsersController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+    patch:
+      operationId: UsersController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+    delete:
+      operationId: UsersController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+  /auth/register:
+    post:
+      operationId: AuthController_registerUser
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Auth
+  /auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Auth
+  /auth/refresh:
+    post:
+      operationId: AuthController_refreshToken
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Auth
 info:
   title: RepVault
   description: RepVault API
@@ -173,3 +267,12 @@ components:
           type: number
         ido:
           type: number
+    UpdateUserDto:
+      type: object
+      properties: {}
+    CreateUserDto:
+      type: object
+      properties: {}
+    LoginDto:
+      type: object
+      properties: {}
