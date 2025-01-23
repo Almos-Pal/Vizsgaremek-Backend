@@ -102,13 +102,271 @@ paths:
       summary: Delete exercise by id
       tags:
         - Edzes
+  /users:
+    get:
+      operationId: UsersController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+  /users/{id}:
+    get:
+      operationId: UsersController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+    patch:
+      operationId: UsersController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+    delete:
+      operationId: UsersController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+  /auth/register:
+    post:
+      operationId: AuthController_registerUser
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Auth
+  /auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Auth
+  /auth/refresh:
+    post:
+      operationId: AuthController_refreshToken
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Auth
+  /gyakorlat:
+    post:
+      operationId: GyakorlatController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGyakorlatDto'
+      responses:
+        '201':
+          description: A gyakorlat sikeresen létrehozva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gyakorlat'
+        '400':
+          description: Hibás kérés - Érvénytelen adatok vagy izomcsoport azonosítók
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      summary: Új gyakorlat létrehozása
+      tags:
+        - Gyakorlat
+    get:
+      description: >-
+        Lapozott lista a gyakorlatokról alapvető információkkal (azonosító, név,
+        eszköz és izomcsoportok)
+      operationId: GyakorlatController_findAll
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Oldalszám
+          schema:
+            minimum: 1
+            default: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Elemek száma oldalanként
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 10
+            type: number
+        - name: userId
+          required: false
+          in: query
+          description: Szűrés felhasználó azonosító alapján
+          schema:
+            type: number
+        - name: muscleId
+          required: false
+          in: query
+          description: Szűrés izomcsoport azonosító alapján
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Lapozott gyakorlat lista
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GyakorlatokResponseDto'
+        '400':
+          description: Hibás kérés - Érvénytelen lekérdezési paraméterek
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      summary: Összes gyakorlat lekérése
+      tags:
+        - Gyakorlat
+  /gyakorlat/{id}:
+    get:
+      operationId: GyakorlatController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A kért gyakorlat adatai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gyakorlat'
+        '404':
+          description: A gyakorlat nem található
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GyakorlatNotFoundDto'
+      summary: Gyakorlat lekérése azonosító alapján
+      tags:
+        - Gyakorlat
+    patch:
+      operationId: GyakorlatController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGyakorlatDto'
+      responses:
+        '200':
+          description: A gyakorlat sikeresen módosítva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gyakorlat'
+        '400':
+          description: Hibás kérés - Érvénytelen adatok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: A gyakorlat nem található
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GyakorlatNotFoundDto'
+      summary: Gyakorlat módosítása azonosító alapján
+      tags:
+        - Gyakorlat
+    delete:
+      operationId: GyakorlatController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A gyakorlat sikeresen törölve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponseDto'
+        '404':
+          description: A gyakorlat nem található
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GyakorlatNotFoundDto'
+      summary: Gyakorlat törlése azonosító alapján
+      tags:
+        - Gyakorlat
 info:
   title: RepVault
   description: RepVault API
   version: '1.0'
   contact: {}
 tags: []
-servers: []
+servers:
+  - url: http://localhost:8000
+    description: Development Server
 components:
   schemas:
     CreateEdzesDto:
@@ -173,3 +431,256 @@ components:
           type: number
         ido:
           type: number
+    UpdateUserDto:
+      type: object
+      properties: {}
+    CreateUserDto:
+      type: object
+      properties: {}
+    LoginDto:
+      type: object
+      properties: {}
+    CreateGyakorlatDto:
+      type: object
+      properties:
+        gyakorlat_neve:
+          type: string
+          example: Fekvenyomás
+          description: A gyakorlat megnevezése
+        personal_best:
+          type: number
+          example: 100.5
+          description: Személyes rekord súly/ismétlésszám
+        eszkoz:
+          type: string
+          example: Rúd
+          description: A gyakorlathoz szükséges eszköz
+        gyakorlat_leiras:
+          type: string
+          example: Feküdj a padra, engedd le a rudat a mellkasodhoz, majd nyomd fel
+          description: A gyakorlat részletes leírása
+        fo_izomcsoport:
+          type: number
+          example: 1
+          description: A fő izomcsoport azonosítója
+        user_id:
+          type: number
+          example: 1
+          description: A felhasználó azonosítója
+        izomcsoportok:
+          example:
+            - 1
+            - 2
+            - 3
+          description: Az érintett izomcsoportok azonosítói
+          type: array
+          items:
+            type: number
+      required:
+        - gyakorlat_neve
+        - user_id
+        - izomcsoportok
+    Gyakorlat:
+      type: object
+      properties:
+        gyakorlat_id:
+          type: number
+          example: 1
+          description: A gyakorlat azonosítója
+        gyakorlat_neve:
+          type: string
+          example: Bench Press
+          description: A gyakorlat neve
+        personal_best:
+          type: number
+          example: 100.5
+          description: Személyes legjobb súly/rekord
+        eszkoz:
+          type: string
+          example: Barbell
+          description: Eszköz amely szükséges a gyakorlat elvégzéséhez
+        gyakorlat_leiras:
+          type: string
+          example: Feküdj a padra, engedd le a rudat a mellkasodhoz, majd nyomd fel
+          description: A gyakorlat leírása
+        fo_izomcsoport:
+          type: number
+          example: 1
+          description: Fő izomcsoport azonosítója
+        user_id:
+          type: number
+          example: 1
+          description: A felhasználó azonosítója
+        izomcsoportok:
+          example:
+            - 1
+            - 2
+            - 3
+          description: Az érintett izomcsoportok azonosítói
+          type: array
+          items:
+            type: number
+      required:
+        - gyakorlat_id
+        - gyakorlat_neve
+    ErrorResponseDto:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 400
+          description: HTTP státusz kód
+        message:
+          type: string
+          example: Hibás kérés
+          description: Hiba üzenet
+        error:
+          type: string
+          example: Bad Request
+          description: Hiba típusa
+      required:
+        - statusCode
+        - message
+        - error
+    GyakorlatListItemDto:
+      type: object
+      properties:
+        gyakorlat_id:
+          type: number
+          example: 1
+          description: A gyakorlat egyedi azonosítója
+        gyakorlat_neve:
+          type: string
+          example: Fekvenyomás
+          description: A gyakorlat megnevezése
+        eszkoz:
+          type: string
+          example: Rúd
+          description: A gyakorlathoz szükséges eszköz
+        fo_izomcsoport:
+          type: number
+          example: 1
+          description: A fő izomcsoport azonosítója
+        izomcsoportok:
+          example:
+            - 1
+            - 2
+            - 3
+          description: Az érintett izomcsoportok azonosítói
+          type: array
+          items:
+            type: number
+      required:
+        - gyakorlat_id
+        - gyakorlat_neve
+        - izomcsoportok
+    PaginationMetaDto:
+      type: object
+      properties:
+        currentPage:
+          type: number
+          example: 1
+          description: Aktuális oldalszám
+        itemsPerPage:
+          type: number
+          example: 10
+          description: Elemek száma oldalanként
+        totalItems:
+          type: number
+          example: 100
+          description: Összes elem száma
+        totalPages:
+          type: number
+          example: 10
+          description: Összes oldal száma
+      required:
+        - currentPage
+        - itemsPerPage
+        - totalItems
+        - totalPages
+    GyakorlatokResponseDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            description: Gyakorlatok listája
+            type: array
+            items:
+              $ref: '#/components/schemas/GyakorlatListItemDto'
+        meta:
+          description: Lapozási metaadatok
+          allOf:
+            - $ref: '#/components/schemas/PaginationMetaDto'
+      required:
+        - items
+        - meta
+    GyakorlatNotFoundDto:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 404
+          description: HTTP státusz kód
+        message:
+          type: string
+          example: 'Gyakorlat nem található az ID: 1 alapján'
+          description: Hibaüzenet
+        error:
+          type: string
+          example: Not Found
+          description: Hiba típusa
+      required:
+        - statusCode
+        - message
+        - error
+    UpdateGyakorlatDto:
+      type: object
+      properties:
+        gyakorlat_neve:
+          type: string
+          example: Fekvenyomás
+          description: A gyakorlat megnevezése
+        personal_best:
+          type: number
+          example: 100.5
+          description: Személyes rekord súly/ismétlésszám
+        eszkoz:
+          type: string
+          example: Rúd
+          description: A gyakorlathoz szükséges eszköz
+        gyakorlat_leiras:
+          type: string
+          example: Feküdj a padra, engedd le a rudat a mellkasodhoz, majd nyomd fel
+          description: A gyakorlat részletes leírása
+        fo_izomcsoport:
+          type: number
+          example: 1
+          description: A fő izomcsoport azonosítója
+        user_id:
+          type: number
+          example: 1
+          description: A felhasználó azonosítója
+        izomcsoportok:
+          example:
+            - 1
+            - 2
+            - 3
+          description: Az érintett izomcsoportok azonosítói
+          type: array
+          items:
+            type: number
+    SuccessResponseDto:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 200
+          description: HTTP státusz kód
+        message:
+          type: string
+          example: A művelet sikeres
+          description: Sikeres művelet üzenete
+      required:
+        - statusCode
+        - message

@@ -6,9 +6,10 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { PrismaService } from './prisma.service';
+import { GyakorlatModule } from './gyakorlat/gyakorlat.module';
 
 @Module({
-  imports: [ EdzesModule,UsersModule,ConfigModule.forRoot(), AuthModule],
+  imports: [ EdzesModule,UsersModule,ConfigModule.forRoot(), AuthModule, GyakorlatModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
