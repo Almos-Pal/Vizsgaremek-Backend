@@ -17,15 +17,14 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-  .setTitle('RepVault')
-  .setDescription('RepVault API')
-  .setVersion('1.0')
-  .build();
+    .setTitle('RepVault')
+    .setDescription('RepVault API')
+    .setVersion('1.0')
+    .addServer('http://localhost:8000', 'Development Server')
+    .build();
 
-const documentFactory = () => SwaggerModule.createDocument(app, config);
-SwaggerModule.setup('api', app, documentFactory);
-
-
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
 
   app.useGlobalPipes(new ValidationPipe({
     transform: true,

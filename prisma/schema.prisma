@@ -82,6 +82,7 @@ model Gyakorlat {
   personal_best    Float?
   eszkoz           String?
   gyakorlat_leiras String?
+  fo_izomcsoport   Int?
   user_id          Int? //optional foreign key for user_id to identify the user who created the exercise
   users            User_Gyakorlat[]              // Many-to-many relationship to User
   sets             Set[]               // One-to-many relationship to Set
