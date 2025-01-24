@@ -1,77 +1,85 @@
 import { PrismaClient } from '@prisma/client';
-import path from 'path';
-import fs from 'fs';
-import csv from 'csv-parser';
+import * as path from 'path';
+import * as fs from 'fs';
+import {parse} from 'csv-parse';
 
 const prisma = new PrismaClient();
-
-const csvFilePath = path.join('./public/data.csv'); // Adjust the path to your CSV file
-
-// Define the mapping between CSV columns and database columns for the gyakorlat table
-const gyakorlatColumnMapping: { [key: string]: string } = {
-    'name': 'gyakorlat_neve',
-    //'personal_best': 'personal_best',
-    'equipment': 'eszkoz',
-    'instructions': 'gyakorlat_leiras',
-};
+const workingDir = process.cwd();
+const docsPath = path.join(workingDir, 'public');
+const apiFilePath = path.join(docsPath, 'gyaksz.csv');
 
 
+if (!fs.existsSync(apiFilePath)) {
+    console.error('CSV file does not exist:', apiFilePath);
+    process.exit(1);
+}
+
+interface gyak {
+    name: string;
+    equipment: string;
+    instructions: string;
+    rowid:string;
+    force:string;
+    level:string;
+    mechanic:string;
+    primaryMuscle:string;
+    secondaryMuscle:string;
+    images:string;
+    id:string;
+    category:string;  
+
+}
+const headers = ['rowid', 'name', 'force', 'level', 'mechanic', 'equipment', 'primaryMuscle', 'secondaryMuscle', 'instructions', 'category', 'images', 'id'];
+const fileContent = fs.readFileSync(apiFilePath, { encoding: 'utf-8' });
+const dataToInsert: any[] = [];
+let data : gyak[] = [];
 
 
+parse(fileContent, {
+    delimiter: ';',
+    columns: headers,
+  }, (error, result: gyak[]) => {
+    if (error) {
+      console.error(error);
+    }
+     for (const i of result){
+
+        data.push(i);
+     }
+  });
+  
 
 async function main() {
     try {
         await prisma.gyakorlat_Izomcsoport.deleteMany(); 
-      await prisma.gyakorlat.deleteMany();
-      // TODO: késöbb nézzünk vissza ide, nem tudom mennyire zavar be ha az összes létező gyakorlatot töröljük
-     // await prisma.gyakorlat.deleteMany();  
-  
-
-        async function uploadData() {
-            const results: any[] = [];
-        
-            fs.createReadStream(csvFilePath)
-                .pipe(csv())
-                .on('data', (data) => results.push(data))
-                .on('end', async () => {
-                    for (const row of results) {
+        await prisma.gyakorlat.deleteMany();
+ 
+            for (const line of data) {
                         try {
-                            const dataToInsert: any = {};
-        
-                            // Map CSV columns to Prisma model fields using the mapping object
-                            for (const csvColumn in gyakorlatColumnMapping) {
-                                if (row.hasOwnProperty(csvColumn)) {
-                                    const dbColumn = gyakorlatColumnMapping[csvColumn];
-                                    dataToInsert[dbColumn] = isNaN(row[csvColumn]) ? row[csvColumn] : parseFloat(row[csvColumn]);
-                                }
-                            }
-        
-                            await prisma.gyakorlat.create({
-                                data: dataToInsert,
+                            dataToInsert.push({
+                                gyakorlat_neve: line.name,
+                                eszkoz: line.equipment,
+                                gyakorlat_leiras: line.instructions
                             });
-                            console.log(`Inserted: ${JSON.stringify(dataToInsert)}`);
+
                         } catch (error) {
                             console.error(`Error inserting row:`, error);
                         }
                     }
+                   
+                    await prisma.gyakorlat.createMany({
+                        data: dataToInsert
+                    });
+
                     await prisma.$disconnect();
-                });
-        }
-        
-        uploadData().catch((error) => {
-            console.error('Error uploading data:', error);
-            prisma.$disconnect();
-        });
-        
-      
-  
-      const gyakorlat = await prisma.gyakorlat.findMany();
-      console.log('Seeding successful:', gyakorlat);
+
+        const gyakorlat = await prisma.gyakorlat.findMany();
+        console.log('Seeding successful:', gyakorlat);
     } catch (error) {
-      console.error('Error during seeding:', error);
+        console.error('Error during seeding:', error);
     } finally {
-      await prisma.$disconnect();
+        await prisma.$disconnect();
     }
-  }
-  
-  main();
+
+}
+main();
