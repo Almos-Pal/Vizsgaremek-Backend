@@ -13,7 +13,6 @@ if (!fs.existsSync(apiFilePath)) {
     console.error('CSV file does not exist:', apiFilePath);
     process.exit(1);
 }
-
 interface Gyak {
     name: string;
     equipment: string;
@@ -27,14 +26,12 @@ interface Gyak {
     images: string;
     id: string;
     category: string;
-
 }
+
 const headers = ['rowid', 'name', 'force', 'level', 'mechanic', 'equipment', 'primaryMuscle', 'secondaryMuscle', 'instructions', 'category', 'images', 'id'];
 const fileContent = fs.readFileSync(apiFilePath, { encoding: 'utf-8' });
 const dataToInsert: any[] = [];
 let data: Gyak[] = [];
-
-
 
 parse(fileContent, {
     from_line: 2,
@@ -53,29 +50,39 @@ async function main() {
     try {
         await prisma.gyakorlat_Izomcsoport.deleteMany();
         await prisma.gyakorlat.deleteMany();
-
         for (const line of data) {
+            console.log(line.secondaryMuscle.substring(1,line.secondaryMuscle.length-1).split(';').map(Number));
             try {
-             
-                dataToInsert.push({
-                    gyakorlat_neve: line.name,
-                    eszkoz: line.equipment,
-                    gyakorlat_leiras: line.instructions,
-                    user_id: 0,
-                   fo_izomcsoport: parseInt(line.primaryMuscle[1])
+                await prisma.gyakorlat.create({
+                    data: {
+                        gyakorlat_id: parseInt(line.rowid),
+                        gyakorlat_neve: line.name,
+                        eszkoz: line.equipment,
+                        gyakorlat_leiras: line.instructions,
+                        user_id: 0,
+                        fo_izomcsoport: parseInt(line.primaryMuscle[1]),
+                   }
                 });
-
-            } catch (error) {
+                await prisma.gyakorlat_Izomcsoport.create({
+                    data: {
+                        gyakorlat_id: parseInt(line.rowid),
+                        izomcsoport_id: parseInt(line.primaryMuscle[1])    
+                }})
+                for (const id of line.secondaryMuscle.substring(1, line.secondaryMuscle.length - 1).split(';').map(Number)) {
+                    await prisma.gyakorlat_Izomcsoport.create({
+                        data: {
+                            gyakorlat_id: parseInt(line.rowid),
+                            izomcsoport_id: id
+                        }
+                    })
+                }
+            }catch (error) {
                 console.error(`Error inserting row:`, error);
             }
         }
-
-       await prisma.gyakorlat.createMany({
+        await prisma.gyakorlat.createMany({
             data: dataToInsert
         });
-
-        await prisma.$disconnect();
-
         const gyakorlat = await prisma.gyakorlat.findMany();
         console.log('Seeding successful:', gyakorlat);
     } catch (error) {
@@ -83,6 +90,5 @@ async function main() {
     } finally {
         await prisma.$disconnect();
     }
-
 }
 main();
