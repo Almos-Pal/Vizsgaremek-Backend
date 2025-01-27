@@ -17,7 +17,10 @@ export class IzomcsoportController {
   @ApiResponse({ 
     status: 200, 
     description: 'Izomcsoport lista',
-    type: Izomcsoport,
+    type: [Izomcsoport],
+
+
+    
   })
   @ApiResponse({ 
     status: 400, 
