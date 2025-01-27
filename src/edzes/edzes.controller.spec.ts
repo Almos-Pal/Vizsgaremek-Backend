@@ -1,20 +1,28 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../prisma.service';
 import { EdzesController } from './edzes.controller';
 import { EdzesService } from './edzes.service';
+import { Test } from '@nestjs/testing';
 
 describe('EdzesController', () => {
-  let controller: EdzesController;
+  let edzesController: EdzesController;
+  let edzesService: EdzesService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const moduleRef = await Test.createTestingModule({
       controllers: [EdzesController],
-      providers: [EdzesService],
+      providers: [EdzesService, PrismaService],
     }).compile();
 
-    controller = module.get<EdzesController>(EdzesController);
+    edzesService = moduleRef.get(EdzesService);
+    edzesController = moduleRef.get(EdzesController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  describe('findAll', () => {
+    it('should return an array of edzes', async () => {
+      const result: any = [{ edzes_id: 1, edzes_neve: "string", datum: new Date("2024-11-12"), user_id: 1, ido: 12 }];
+      jest.spyOn(edzesService, 'findAll').mockImplementation(() => result);
+
+      expect(await edzesController.findAll()).toBe(result);
+    });
   });
 });

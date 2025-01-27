@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EdzesService } from './edzes.service';
 import { EdzesController } from './edzes.controller';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 
 @Module({
   controllers: [EdzesController],
