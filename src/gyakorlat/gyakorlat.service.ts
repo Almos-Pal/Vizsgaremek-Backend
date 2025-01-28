@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateGyakorlatDto } from './dto/create-gyakorlat.dto';
 import { UpdateGyakorlatDto } from './dto/update-gyakorlat.dto';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 import { Gyakorlat } from './entities/gyakorlat.entity';
 import { GetGyakorlatokQueryDto, GyakorlatokResponseDto } from './dto/gyakorlatok.dto';
 import { PaginationHelper } from '../common/helpers/pagination.helper';

@@ -1,19 +1,24 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { EdzesService } from './edzes.service';
+import { EdzesController } from './edzes.controller';
+import { PrismaService } from '../prisma.service';
 
 describe('EdzesService', () => {
-  let service: EdzesService;
+  let edzesController: EdzesController;
+  let edzesService: EdzesService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [EdzesService],
+    const moduleRef = await Test.createTestingModule({
+      controllers: [EdzesController],
+      providers: [EdzesService, PrismaService],
     }).compile();
 
-    service = module.get<EdzesService>(EdzesService);
+    edzesService = moduleRef.get(EdzesService);
+    edzesController = moduleRef.get(EdzesController);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(edzesService).toBeDefined();
   });
 });
