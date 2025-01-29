@@ -79,7 +79,7 @@ model User_Gyakorlat {
 model Gyakorlat {
   gyakorlat_id     Int                  @id @default(autoincrement())
   gyakorlat_neve   String
-  personal_best    Float?
+  // personal_best    Float?
   eszkoz           String?
   gyakorlat_leiras String?
   fo_izomcsoport   Int?
