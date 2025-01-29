@@ -245,18 +245,32 @@ paths:
             maximum: 100
             default: 10
             type: number
-        - name: userId
+        - name: nev
           required: false
           in: query
-          description: Szűrés felhasználó azonosító alapján
+          description: Szűrés a gyakorlat nevére
           schema:
-            type: number
-        - name: muscleId
+            type: string
+        - name: izomcsoportId
           required: false
           in: query
-          description: Szűrés izomcsoport azonosító alapján
+          description: Szűrés a fő izomcsoport azonosítójára
           schema:
             type: number
+        - name: izomcsoportok
+          required: false
+          in: query
+          description: Szűrés izomcsoportokra
+          schema:
+            type: array
+            items:
+              type: number
+        - name: eszkoz
+          required: false
+          in: query
+          description: Szűrés eszközökre
+          schema:
+            type: string
       responses:
         '200':
           description: Lapozott gyakorlat lista
@@ -358,6 +372,29 @@ paths:
       summary: Gyakorlat törlése azonosító alapján
       tags:
         - Gyakorlat
+  /izomcsoport:
+    get:
+      description: Lista az összes izomcsoportról
+      operationId: IzomcsoportController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: Izomcsoport lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Izomcsoport'
+        '400':
+          description: Hibás kérés - Érvénytelen lekérdezési paraméterek
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      summary: Összes Izom lekérése
+      tags:
+        - Izomcsoport
 info:
   title: RepVault
   description: RepVault API
@@ -684,3 +721,17 @@ components:
       required:
         - statusCode
         - message
+    Izomcsoport:
+      type: object
+      properties:
+        izomcsoport_id:
+          type: number
+          example: '1'
+          description: Az izomcsoport azonosítója
+        izomcsoport_neve:
+          type: string
+          example: hasizom
+          description: Az izomcsoport neve
+      required:
+        - izomcsoport_id
+        - izomcsoport_neve

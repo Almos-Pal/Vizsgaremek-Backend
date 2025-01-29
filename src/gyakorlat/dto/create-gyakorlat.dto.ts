@@ -9,14 +9,14 @@ export class CreateGyakorlatDto {
     @IsString()
     gyakorlat_neve: string;
 
-    @ApiProperty({
-        example: 100.5,
-        description: 'Személyes rekord súly/ismétlésszám',
-        required: false
-    })
-    @IsOptional()
-    @IsNumber()
-    personal_best?: number;
+    // @ApiProperty({
+    //     example: 100.5,
+    //     description: 'Személyes rekord súly/ismétlésszám',
+    //     required: false
+    // })
+    // @IsOptional()
+    // @IsNumber()
+    // personal_best?: number;
 
     @ApiProperty({
         example: 'Rúd',
@@ -47,9 +47,12 @@ export class CreateGyakorlatDto {
 
     @ApiProperty({
         example: 1,
-        description: 'A felhasználó azonosítója'
+        description: 'A felhasználó azonosítója',
+        required: false,
+        nullable: true
     })
     @IsNumber()
+    @IsOptional()
     user_id: number;
 
     @ApiProperty({
