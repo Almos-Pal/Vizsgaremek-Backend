@@ -68,24 +68,34 @@ async function main() {
                         gyakorlat_id: parseInt(line.rowid),
                         izomcsoport_id: parseInt(line.primaryMuscle[1])    
                 }})
+
                 for (const id of line.secondaryMuscle.substring(1, line.secondaryMuscle.length - 1).split(';').map(Number)) {
-                    await prisma.gyakorlat_Izomcsoport.create({
-                        data: {
-                            gyakorlat_id: parseInt(line.rowid),
-                            izomcsoport_id: id
-                        }
-                    })
-                }
-            }catch (error) {
+                    if(id != 0) {
+                    try{
+
+                        await prisma.gyakorlat_Izomcsoport.create({
+                            data: {
+                                gyakorlat_id: parseInt(line.rowid),
+                                izomcsoport_id: id
+                            }
+                        })
+                    }catch {
+                        console.error(`Létező elem:`, parseInt(line.rowid),id);
+                    }
+                    }else{
+                        console.log('No secondary muscle');
+                    }
+
+            }}catch (error) {
                 console.error(`Error inserting row:`, error);
             }
-        }
+        
         await prisma.gyakorlat.createMany({
             data: dataToInsert
         });
         const gyakorlat = await prisma.gyakorlat.findMany();
-        console.log('Seeding successful:', gyakorlat);
-    } catch (error) {
+        //console.log('Seeding successful:', gyakorlat);
+    }} catch (error) {
         console.error('Error during seeding:', error);
     } finally {
         await prisma.$disconnect();
