@@ -20,11 +20,19 @@ async function bootstrap() {
     .setTitle('RepVault')
     .setDescription('RepVault API')
     .setVersion('1.0')
+
     .addServer('http://localhost:8000', 'Development Server')
     .build();
 
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  const options: SwaggerDocumentOptions = {
+    operationIdFactory: (
+      controllerKey: string,
+      methodKey: string
+    ) => methodKey
+  };
+
+  const document = SwaggerModule.createDocument(app, config, options);
+  SwaggerModule.setup('api', app, document);
 
   app.useGlobalPipes(new ValidationPipe({
     transform: true,

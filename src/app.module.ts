@@ -8,9 +8,18 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaService } from './prisma.service';
 import { GyakorlatModule } from './gyakorlat/gyakorlat.module';
 import { IzomcsoportModule } from './izomcsoport/izomcsoport.module';
+import { UserGyakorlatModule } from './user-gyakorlat/user-gyakorlat.module';
 
 @Module({
-  imports: [ EdzesModule,UsersModule,ConfigModule.forRoot(), AuthModule, GyakorlatModule, IzomcsoportModule],
+  imports: [ 
+    EdzesModule,
+    UsersModule,
+    ConfigModule.forRoot(), 
+    AuthModule, 
+    GyakorlatModule, 
+    IzomcsoportModule,
+    UserGyakorlatModule
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })

@@ -1,0 +1,144 @@
+import { Controller, Get, Post, Body, Param, Delete, Query, Patch } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { UserGyakorlatService } from './user-gyakorlat.service';
+import { CreateUserGyakorlatDto } from './dto/create-user-gyakorlat.dto';
+import { CreateUserGyakorlatHistoryDto } from './dto/create-user-gyakorlat-history.dto';
+import { UserGyakorlat } from './entities/user-gyakorlat.entity';
+import { GetUserGyakorlatokQueryDto, UserGyakorlatokResponseDto } from './dto/user-gyakorlatok.dto';
+import { UserGyakorlatNotFoundDto } from '../common/dto/not-found.dto';
+
+@ApiTags('User Gyakorlat')
+@Controller('user-gyakorlat')
+export class UserGyakorlatController {
+  constructor(private readonly userGyakorlatService: UserGyakorlatService) {}
+
+  @Post()
+  @ApiOperation({ 
+    summary: 'Új user-gyakorlat kapcsolat létrehozása',
+    description: 'Létrehoz egy új kapcsolatot a felhasználó és egy gyakorlat között'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'A kapcsolat sikeresen létrehozva',
+    type: UserGyakorlat 
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'A gyakorlat már hozzá van rendelve a felhasználóhoz' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'A gyakorlat vagy a felhasználó nem található' 
+  })
+  create(@Body() createUserGyakorlatDto: CreateUserGyakorlatDto) {
+    return this.userGyakorlatService.createUserGyakorlat(createUserGyakorlatDto);
+  }
+
+  @Post('history')
+  @ApiOperation({ 
+    summary: 'Új edzés history bejegyzés létrehozása',
+    description: 'Rögzít egy új edzés eredményt (súly és ismétlésszám) egy gyakorlathoz'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'A history bejegyzés sikeresen létrehozva',
+    type: UserGyakorlat 
+  })
+  createHistory(@Body() createHistoryDto: CreateUserGyakorlatHistoryDto) {
+    return this.userGyakorlatService.createUserGyakorlatHistory(createHistoryDto);
+  }
+
+  @Get('user/:userId')
+  @ApiOperation({ 
+    summary: 'Felhasználó összes gyakorlatának lekérése',
+    description: 'Lekéri az összes gyakorlatot és azok történetét egy adott felhasználóhoz'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number',
+    required: true
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'A gyakorlatok sikeresen lekérve',
+    type: UserGyakorlatokResponseDto
+  })
+  getUserGyakorlatok(
+    @Param('userId') userId: string,
+    @Query() query: GetUserGyakorlatokQueryDto
+  ) {
+    return this.userGyakorlatService.getUserGyakorlatok(+userId, query);
+  }
+
+  @Get(':userId/:gyakorlatId')
+  @ApiOperation({ 
+    summary: 'Egy konkrét user-gyakorlat részletes adatai',
+    description: 'Lekéri egy konkrét gyakorlat részletes adatait és történetét egy felhasználóhoz'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number',
+    required: true
+  })
+  @ApiParam({
+    name: 'gyakorlatId',
+    description: 'A gyakorlat azonosítója',
+    type: 'number',
+    required: true
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'A gyakorlat adatai sikeresen lekérve',
+    type: UserGyakorlat
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'A gyakorlat nem található a felhasználónál',
+    type: UserGyakorlatNotFoundDto
+  })
+  getUserGyakorlatDetails(
+    @Param('userId') userId: string,
+    @Param('gyakorlatId') gyakorlatId: string,
+  ) {
+    return this.userGyakorlatService.getUserGyakorlatDetails(+userId, +gyakorlatId);
+  }
+
+  @Delete(':userId/:gyakorlatId')
+  @ApiOperation({ 
+    summary: 'Felhasználó gyakorlatának törlése',
+    description: 'Törli a kapcsolatot egy felhasználó és egy gyakorlat között'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number',
+    required: true
+  })
+  @ApiParam({
+    name: 'gyakorlatId',
+    description: 'A gyakorlat azonosítója',
+    type: 'number',
+    required: true
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'A gyakorlat sikeresen törölve',
+    type: UserGyakorlat
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'A gyakorlat nem található a felhasználónál',
+    type: UserGyakorlatNotFoundDto
+  })
+  deleteUserGyakorlat(
+    @Param('userId') userId: string,
+    @Param('gyakorlatId') gyakorlatId: string,
+  ) {
+    return this.userGyakorlatService.deleteUserGyakorlat(+userId, +gyakorlatId);
+  }
+
+
+
+} 

@@ -49,4 +49,14 @@ export class UserNotFoundDto extends NotFoundDto {
     constructor(id?: number) {
         super('Felhasználó', id);
     }
+}
+
+export class UserGyakorlatNotFoundDto extends NotFoundDto {
+    constructor(userId?: number, gyakorlatId?: number) {
+        const message = userId && gyakorlatId 
+            ? `A gyakorlat (${gyakorlatId}) nem található a felhasználónál (${userId})`
+            : 'A user-gyakorlat kapcsolat nem található';
+        super('User-Gyakorlat');
+        this.message = message;
+    }
 } 

@@ -78,7 +78,6 @@ export class GyakorlatService {
     return {
       gyakorlat_id: gyakorlat.gyakorlat_id,
       gyakorlat_neve: gyakorlat.gyakorlat_neve,
-      personal_best: gyakorlat.personal_best,
       eszkoz: gyakorlat.eszkoz,
       gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
       fo_izomcsoport: gyakorlat.fo_izomcsoport,
@@ -146,7 +145,6 @@ export class GyakorlatService {
     return {
       gyakorlat_id: gyakorlat.gyakorlat_id,
       gyakorlat_neve: gyakorlat.gyakorlat_neve,
-      personal_best: gyakorlat.personal_best,
       eszkoz: gyakorlat.eszkoz,
       gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
       fo_izomcsoport: gyakorlat.fo_izomcsoport,
@@ -205,7 +203,6 @@ export class GyakorlatService {
         where: { gyakorlat_id: id },
         data: {
           gyakorlat_neve: updateGyakorlatDto.gyakorlat_neve,
-          personal_best: updateGyakorlatDto.personal_best,
           eszkoz: updateGyakorlatDto.eszkoz,
           gyakorlat_leiras: updateGyakorlatDto.gyakorlat_leiras,
           fo_izomcsoport: updateGyakorlatDto.fo_izomcsoport,
@@ -235,7 +232,6 @@ export class GyakorlatService {
       return {
         gyakorlat_id: gyakorlat.gyakorlat_id,
         gyakorlat_neve: gyakorlat.gyakorlat_neve,
-        personal_best: gyakorlat.personal_best,
         eszkoz: gyakorlat.eszkoz,
         gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
         fo_izomcsoport: gyakorlat.fo_izomcsoport,
