@@ -10,6 +10,5 @@ export class LoginDto {
     
     @IsDefined()
     @IsString()
-    @IsStrongPassword()
     password: string;
 }
