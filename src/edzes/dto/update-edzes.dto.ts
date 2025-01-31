@@ -4,3 +4,6 @@ import { PartialType } from '@nestjs/swagger';
 
 
 export class UpdateEdzesDto extends PartialType(CreateEdzesDto) {}
+
+
+// Remove git acount from my windows
