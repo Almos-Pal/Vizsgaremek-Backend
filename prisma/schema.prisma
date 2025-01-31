@@ -23,6 +23,7 @@ model User {
   gyakorlatok User_Gyakorlat[]
   edzestervek Edzesterv[]
   edzesek     Edzes[]
+  admin      Boolean   @default(false)
 
   @@map("user")
 }
