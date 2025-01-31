@@ -178,18 +178,31 @@ export class UserGyakorlatService {
         }
       }
     });
+    
 
     if (!userGyakorlat) {
       throw new NotFoundException(new UserGyakorlatNotFoundDto(user_id, gyakorlat_id));
     }
 
-    return this.prisma.user_Gyakorlat.delete({
-      where: {
-        user_id_gyakorlat_id: {
+    // Use transaction to ensure all related records are deleted
+    return this.prisma.$transaction(async (prisma) => {
+      // First delete all history records
+      await prisma.user_Gyakorlat_History.deleteMany({
+        where: {
           user_id,
           gyakorlat_id
         }
-      }
+      });
+
+      // Then delete the user_gyakorlat record
+      return prisma.user_Gyakorlat.delete({
+        where: {
+          user_id_gyakorlat_id: {
+            user_id,
+            gyakorlat_id
+          }
+        }
+      });
     });
   }
 
