@@ -5,7 +5,6 @@ export class LoginDto {
 
     @IsDefined()
     @IsString()
-    @IsEmail()
     email: string;
     
     @IsDefined()
