@@ -113,13 +113,25 @@ model Edzesterv_Edzes {
 model Edzes_Gyakorlat {
   edzes_id      Int
   gyakorlat_id  Int
-  sets          Int        // Number of sets in this workout
-  reps          Int        // Reps per set
-  weight        Float      // Weight used
   edzes         Edzes     @relation(fields: [edzes_id], references: [edzes_id])
   gyakorlat     Gyakorlat @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
+  szettek       Edzes_Gyakorlat_Set[]
 
   @@id([edzes_id, gyakorlat_id])
+}
+
+// EDZÉS-GYAKORLAT-SET TABLE (Track each set of an exercise in a workout)
+model Edzes_Gyakorlat_Set {
+  id              Int           @id @default(autoincrement())
+  edzes_id        Int
+  gyakorlat_id    Int
+  set_szam        Int          // Which set number is this (1, 2, 3, etc.)
+  weight          Float        // Weight used in this specific set
+  reps            Int         // Reps done in this specific set
+  edzes_gyakorlat Edzes_Gyakorlat @relation(fields: [edzes_id, gyakorlat_id], references: [edzes_id, gyakorlat_id])
+
+  @@unique([edzes_id, gyakorlat_id, set_szam])
+  @@map("edzes_gyakorlat_set")
 }
 
 // IZOMCSOPORT TABLE
