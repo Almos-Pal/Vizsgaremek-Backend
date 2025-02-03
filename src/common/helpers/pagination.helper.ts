@@ -1,14 +1,9 @@
 import { PaginationMetaDto } from '../dto/pagination.dto';
 
-export interface PaginationOptions {
-    page?: number;
-    limit?: number;
-}
-
 export class PaginationHelper {
-    static getPaginationOptions(options: PaginationOptions) {
-        const page = Math.max(1, options.page || 1);
-        const limit = Math.min(100, Math.max(1, options.limit || 10));
+    static getPaginationOptions(query: { page?: number; limit?: number }) {
+        const page = query.page || 1;
+        const limit = query.limit || 10;
         const skip = (page - 1) * limit;
 
         return {
@@ -19,11 +14,7 @@ export class PaginationHelper {
         };
     }
 
-    static createMeta(
-        page: number,
-        limit: number,
-        total: number
-    ): PaginationMetaDto {
+    static createMeta(page: number, limit: number, total: number): PaginationMetaDto {
         return {
             currentPage: page,
             itemsPerPage: limit,
