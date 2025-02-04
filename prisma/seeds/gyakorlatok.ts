@@ -53,9 +53,9 @@ async function main() {
         for (const line of data) {
             console.log(line.secondaryMuscle.substring(1,line.secondaryMuscle.length-1).split(';').map(Number));
             try {
-                await prisma.gyakorlat.create({
+                // Create the gyakorlat first and get its ID
+                const createdGyakorlat = await prisma.gyakorlat.create({
                     data: {
-                        gyakorlat_id: parseInt(line.rowid),
                         gyakorlat_neve: line.name,
                         eszkoz: line.equipment,
                         gyakorlat_leiras: line.instructions,
@@ -63,39 +63,38 @@ async function main() {
                         fo_izomcsoport: parseInt(line.primaryMuscle[1]),
                    }
                 });
+
+                // Create primary muscle group connection using the new ID
                 await prisma.gyakorlat_Izomcsoport.create({
                     data: {
-                        gyakorlat_id: parseInt(line.rowid),
+                        gyakorlat_id: createdGyakorlat.gyakorlat_id,
                         izomcsoport_id: parseInt(line.primaryMuscle[1])    
-                }})
+                }});
 
+                // Create secondary muscle group connections using the new ID
                 for (const id of line.secondaryMuscle.substring(1, line.secondaryMuscle.length - 1).split(';').map(Number)) {
                     if(id != 0) {
-                    try{
-
-                        await prisma.gyakorlat_Izomcsoport.create({
-                            data: {
-                                gyakorlat_id: parseInt(line.rowid),
-                                izomcsoport_id: id
-                            }
-                        })
-                    }catch {
-                        console.error(`Létező elem:`, parseInt(line.rowid),id);
-                    }
-                    }else{
+                        try {
+                            await prisma.gyakorlat_Izomcsoport.create({
+                                data: {
+                                    gyakorlat_id: createdGyakorlat.gyakorlat_id,
+                                    izomcsoport_id: id
+                                }
+                            });
+                        } catch {
+                            console.error(`Létező elem:`, createdGyakorlat.gyakorlat_id, id);
+                        }
+                    } else {
                         console.log('No secondary muscle');
                     }
-
-            }}catch (error) {
+                }
+            } catch (error) {
                 console.error(`Error inserting row:`, error);
             }
-        
-        await prisma.gyakorlat.createMany({
-            data: dataToInsert
-        });
+        }
         const gyakorlat = await prisma.gyakorlat.findMany();
         //console.log('Seeding successful:', gyakorlat);
-    }} catch (error) {
+    } catch (error) {
         console.error('Error during seeding:', error);
     } finally {
         await prisma.$disconnect();
