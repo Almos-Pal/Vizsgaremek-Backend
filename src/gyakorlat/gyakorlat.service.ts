@@ -321,7 +321,16 @@ export class GyakorlatService {
         this.prisma.gyakorlat_Izomcsoport.deleteMany({
           where: { gyakorlat_id: id }
         }),
+        this.prisma.edzes_Gyakorlat_Set.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
+        this.prisma.user_Gyakorlat_History.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
         this.prisma.edzes_Gyakorlat.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
+        this.prisma.user_Gyakorlat.deleteMany({
           where: { gyakorlat_id: id }
         }),
         this.prisma.gyakorlat.delete({
