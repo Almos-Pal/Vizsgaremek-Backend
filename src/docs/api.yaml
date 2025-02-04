@@ -2,7 +2,8 @@ openapi: 3.0.0
 paths:
   /edzes:
     post:
-      operationId: EdzesController_create
+      description: Létrehoz egy új edzést a megadott felhasználóhoz
+      operationId: create
       parameters: []
       requestBody:
         required: true
@@ -12,58 +13,228 @@ paths:
               $ref: '#/components/schemas/CreateEdzesDto'
       responses:
         '201':
-          description: Exercise has been successfully created.
+          description: Az edzés sikeresen létrehozva
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
-        '400':
-          description: Bad Request - Invalid data provided.
-      summary: Create a new exercise
+        '404':
+          description: A felhasználó nem található
+      summary: Új edzés létrehozása
       tags:
         - Edzes
     get:
-      operationId: EdzesController_findAll
+      description: >-
+        Lekéri az összes edzést a hozzájuk tartozó gyakorlatokkal és
+        felhasználókkal együtt
+      operationId: findAll
       parameters: []
       responses:
         '200':
-          description: Returns all exercises
+          description: Az edzések sikeresen lekérve
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Edzes'
-      summary: Get all exercises
+      summary: Összes edzés lekérése
       tags:
         - Edzes
-  /edzes/{id}:
-    get:
-      operationId: EdzesController_findOne
+  /edzes/{id}/gyakorlat/{userId}:
+    post:
+      description: >-
+        Hozzáad egy gyakorlatot egy meglévő edzéshez és rögzíti a felhasználó
+        történetében
+      operationId: addGyakorlatToEdzes
       parameters:
         - name: id
           required: true
           in: path
+          description: Az edzés azonosítója
           schema:
             type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddEdzesGyakorlatDto'
       responses:
-        '200':
-          description: Returns the exercise
+        '201':
+          description: A gyakorlat sikeresen hozzáadva
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
         '404':
-          description: Exercise not found
-      summary: Get exercise by id
+          description: Az edzés vagy a gyakorlat nem található
+      summary: Gyakorlat hozzáadása edzéshez
       tags:
         - Edzes
-    patch:
-      operationId: EdzesController_update
+  /edzes/{id}/gyakorlat/{gyakorlatId}/set/{userId}:
+    post:
+      description: >-
+        Hozzáad egy szettet egy edzés gyakorlatához és rögzíti a felhasználó
+        történetében
+      operationId: addSetToEdzesGyakorlat
       parameters:
         - name: id
           required: true
           in: path
+          description: Az edzés azonosítója
+          schema:
+            type: number
+        - name: gyakorlatId
+          required: true
+          in: path
+          description: A gyakorlat azonosítója
+          schema:
+            type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddEdzesGyakorlatSetDto'
+      responses:
+        '201':
+          description: A szett sikeresen hozzáadva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: Az edzés, a gyakorlat vagy a felhasználó nem található
+      summary: Szett hozzáadása gyakorlathoz
+      tags:
+        - Edzes
+  /edzes/{id}/gyakorlat/{gyakorlatId}/set/{setId}/{userId}:
+    patch:
+      description: Módosítja egy edzés gyakorlatának szettjét
+      operationId: updateSet
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Az edzés azonosítója
+          schema:
+            type: number
+        - name: gyakorlatId
+          required: true
+          in: path
+          description: A gyakorlat azonosítója
+          schema:
+            type: number
+        - name: setId
+          required: true
+          in: path
+          description: A szett azonosítója
+          schema:
+            type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEdzesSetDto'
+      responses:
+        '200':
+          description: A szett sikeresen módosítva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: Az edzés, a gyakorlat vagy a szett nem található
+      summary: Szett módosítása
+      tags:
+        - Edzes
+    delete:
+      description: Törli egy edzés gyakorlatának szettjét
+      operationId: removeSet
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Az edzés azonosítója
+          schema:
+            type: number
+        - name: gyakorlatId
+          required: true
+          in: path
+          description: A gyakorlat azonosítója
+          schema:
+            type: number
+        - name: setId
+          required: true
+          in: path
+          description: A szett azonosítója
+          schema:
+            type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A szett sikeresen törölve
+        '404':
+          description: Az edzés, a gyakorlat vagy a szett nem található
+      summary: Szett törlése
+      tags:
+        - Edzes
+  /edzes/{id}:
+    get:
+      description: Lekér egy edzést az azonosítója alapján
+      operationId: findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Az edzés azonosítója
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Az edzés sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: Az edzés nem található
+      summary: Egy edzés részletes adatai
+      tags:
+        - Edzes
+    patch:
+      description: Módosítja az edzés adatait a megadott azonosító alapján
+      operationId: update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Az edzés azonosítója
           schema:
             type: number
       requestBody:
@@ -74,37 +245,37 @@ paths:
               $ref: '#/components/schemas/UpdateEdzesDto'
       responses:
         '200':
-          description: Exercise has been successfully updated
+          description: Az edzés sikeresen módosítva
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
-        '400':
-          description: Bad Request - Invalid data provided
         '404':
-          description: Exercise not found
-      summary: Update exercise by id
+          description: Az edzés nem található
+      summary: Edzés módosítása
       tags:
         - Edzes
     delete:
-      operationId: EdzesController_remove
+      description: Törli az edzést és a hozzá tartozó gyakorlatokat
+      operationId: remove
       parameters:
         - name: id
           required: true
           in: path
+          description: Az edzés azonosítója
           schema:
             type: number
       responses:
         '200':
-          description: Exercise has been successfully deleted
+          description: Az edzés sikeresen törölve
         '404':
-          description: Exercise not found
-      summary: Delete exercise by id
+          description: Az edzés nem található
+      summary: Edzés törlése
       tags:
         - Edzes
   /users:
     get:
-      operationId: UsersController_findAll
+      operationId: findAll
       parameters: []
       responses:
         '200':
@@ -113,7 +284,7 @@ paths:
         - Users
   /users/{id}:
     get:
-      operationId: UsersController_findOne
+      operationId: findOne
       parameters:
         - name: id
           required: true
@@ -126,7 +297,7 @@ paths:
       tags:
         - Users
     patch:
-      operationId: UsersController_update
+      operationId: update
       parameters:
         - name: id
           required: true
@@ -145,7 +316,7 @@ paths:
       tags:
         - Users
     delete:
-      operationId: UsersController_remove
+      operationId: remove
       parameters:
         - name: id
           required: true
@@ -159,7 +330,7 @@ paths:
         - Users
   /auth/register:
     post:
-      operationId: AuthController_registerUser
+      operationId: registerUser
       parameters: []
       requestBody:
         required: true
@@ -174,7 +345,7 @@ paths:
         - Auth
   /auth/login:
     post:
-      operationId: AuthController_login
+      operationId: login
       parameters: []
       requestBody:
         required: true
@@ -189,7 +360,7 @@ paths:
         - Auth
   /auth/refresh:
     post:
-      operationId: AuthController_refreshToken
+      operationId: refreshToken
       parameters: []
       responses:
         '201':
@@ -198,7 +369,7 @@ paths:
         - Auth
   /gyakorlat:
     post:
-      operationId: GyakorlatController_create
+      operationId: create
       parameters: []
       requestBody:
         required: true
@@ -226,7 +397,7 @@ paths:
       description: >-
         Lapozott lista a gyakorlatokról alapvető információkkal (azonosító, név,
         eszköz és izomcsoportok)
-      operationId: GyakorlatController_findAll
+      operationId: findAll
       parameters:
         - name: page
           required: false
@@ -289,7 +460,7 @@ paths:
         - Gyakorlat
   /gyakorlat/{id}:
     get:
-      operationId: GyakorlatController_findOne
+      operationId: findOne
       parameters:
         - name: id
           required: true
@@ -313,7 +484,7 @@ paths:
       tags:
         - Gyakorlat
     patch:
-      operationId: GyakorlatController_update
+      operationId: update
       parameters:
         - name: id
           required: true
@@ -349,7 +520,7 @@ paths:
       tags:
         - Gyakorlat
     delete:
-      operationId: GyakorlatController_remove
+      operationId: remove
       parameters:
         - name: id
           required: true
@@ -375,7 +546,7 @@ paths:
   /izomcsoport:
     get:
       description: Lista az összes izomcsoportról
-      operationId: IzomcsoportController_findAll
+      operationId: findAll
       parameters: []
       responses:
         '200':
@@ -395,6 +566,157 @@ paths:
       summary: Összes Izom lekérése
       tags:
         - Izomcsoport
+  /user-gyakorlat:
+    post:
+      description: Létrehoz egy új kapcsolatot a felhasználó és egy gyakorlat között
+      operationId: create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserGyakorlatDto'
+      responses:
+        '201':
+          description: A kapcsolat sikeresen létrehozva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlat'
+        '400':
+          description: A gyakorlat már hozzá van rendelve a felhasználóhoz
+        '404':
+          description: A gyakorlat vagy a felhasználó nem található
+      summary: Új user-gyakorlat kapcsolat létrehozása
+      tags:
+        - User Gyakorlat
+  /user-gyakorlat/history:
+    post:
+      description: Rögzít egy új edzés eredményt (súly és ismétlésszám) egy gyakorlathoz
+      operationId: createHistory
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserGyakorlatHistoryDto'
+      responses:
+        '201':
+          description: A history bejegyzés sikeresen létrehozva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlat'
+      summary: Új edzés history bejegyzés létrehozása
+      tags:
+        - User Gyakorlat
+  /user-gyakorlat/user/{userId}:
+    get:
+      description: Lekéri az összes gyakorlatot és azok történetét egy adott felhasználóhoz
+      operationId: getUserGyakorlatok
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+        - name: page
+          required: false
+          in: query
+          description: Oldalszám
+          schema:
+            minimum: 1
+            default: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Elemek száma oldalanként
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 10
+            type: number
+      responses:
+        '200':
+          description: A gyakorlatok sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlatokResponseDto'
+      summary: Felhasználó összes gyakorlatának lekérése
+      tags:
+        - User Gyakorlat
+  /user-gyakorlat/{userId}/{gyakorlatId}:
+    get:
+      description: >-
+        Lekéri egy konkrét gyakorlat részletes adatait és történetét egy
+        felhasználóhoz
+      operationId: getUserGyakorlatDetails
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+        - name: gyakorlatId
+          required: true
+          in: path
+          description: A gyakorlat azonosítója
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A gyakorlat adatai sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlat'
+        '404':
+          description: A gyakorlat nem található a felhasználónál
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlatNotFoundDto'
+      summary: Egy konkrét user-gyakorlat részletes adatai
+      tags:
+        - User Gyakorlat
+    delete:
+      description: Törli a kapcsolatot egy felhasználó és egy gyakorlat között
+      operationId: deleteUserGyakorlat
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+        - name: gyakorlatId
+          required: true
+          in: path
+          description: A gyakorlat azonosítója
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A gyakorlat sikeresen törölve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlat'
+        '404':
+          description: A gyakorlat nem található a felhasználónál
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGyakorlatNotFoundDto'
+      summary: Felhasználó gyakorlatának törlése
+      tags:
+        - User Gyakorlat
 info:
   title: RepVault
   description: RepVault API
@@ -411,63 +733,169 @@ components:
       properties:
         edzes_neve:
           type: string
+          description: Az edzés neve
+          example: Láb nap
         datum:
-          format: date-time
           type: string
-          example: '2024-03-20T15:30:00.000Z'
-          description: Date of the exercise
+          description: Az edzés dátuma
+          example: '2024-03-20'
         user_id:
           type: number
+          description: A felhasználó azonosítója
+          example: 1
         ido:
           type: number
+          description: Az edzés időtartama percben
+          example: 60
       required:
         - edzes_neve
         - datum
         - user_id
-        - ido
+    EdzesGyakorlatSet:
+      type: object
+      properties:
+        id:
+          type: number
+          description: A szett azonosítója
+          example: 1
+        set_szam:
+          type: number
+          description: A szett sorszáma
+          example: 1
+        weight:
+          type: number
+          description: Az elvégzett súly ebben a szettben
+          example: 100.5
+        reps:
+          type: number
+          description: Az elvégzett ismétlések száma ebben a szettben
+          example: 12
+      required:
+        - id
+        - set_szam
+        - weight
+        - reps
+    EdzesExercise:
+      type: object
+      properties:
+        edzes_id:
+          type: number
+          description: Az edzés azonosítója
+          example: 1
+        gyakorlat_id:
+          type: number
+          description: A gyakorlat azonosítója
+          example: 1
+        szettek:
+          description: A gyakorlat szettjei
+          type: array
+          items:
+            $ref: '#/components/schemas/EdzesGyakorlatSet'
+        gyakorlat:
+          type: object
+          description: A gyakorlat részletes adatai
+      required:
+        - edzes_id
+        - gyakorlat_id
+        - szettek
+        - gyakorlat
     Edzes:
       type: object
       properties:
         edzes_id:
           type: number
+          description: Az edzés azonosítója
           example: 1
-          description: The unique identifier of the exercise
         edzes_neve:
           type: string
-          example: Morning Workout
-          description: Name of the exercise
+          description: Az edzés neve
+          example: Melledzés
         datum:
           format: date-time
           type: string
-          example: '2024-03-20T15:30:00.000Z'
-          description: Date of the exercise
+          description: Az edzés dátuma
+          example: '2024-03-15T10:00:00.000Z'
         user_id:
           type: number
+          description: A felhasználó azonosítója
           example: 1
-          description: User ID associated with the exercise
         ido:
           type: number
+          description: Az edzés időtartama (percben)
           example: 60
-          description: Duration of the exercise in minutes
+        gyakorlatok:
+          description: Az edzésen végzett gyakorlatok
+          type: array
+          items:
+            $ref: '#/components/schemas/EdzesExercise'
       required:
         - edzes_id
         - edzes_neve
         - datum
+        - user_id
         - ido
+        - gyakorlatok
+    AddEdzesGyakorlatDto:
+      type: object
+      properties:
+        gyakorlat_id:
+          type: number
+          description: A gyakorlat azonosítója
+          example: 1
+      required:
+        - gyakorlat_id
+    AddEdzesGyakorlatSetDto:
+      type: object
+      properties:
+        set_szam:
+          type: number
+          description: A szett sorszáma
+          example: 1
+        weight:
+          type: number
+          description: A gyakorlat során használt súly (kg)
+          example: 60
+        reps:
+          type: number
+          description: Az ismétlések száma
+          example: 12
+      required:
+        - set_szam
+        - weight
+        - reps
+    UpdateEdzesSetDto:
+      type: object
+      properties:
+        weight:
+          type: number
+          description: A gyakorlat során használt súly (kg)
+          example: 60
+        reps:
+          type: number
+          description: Az ismétlések száma
+          example: 12
+      required:
+        - weight
+        - reps
     UpdateEdzesDto:
       type: object
       properties:
         edzes_neve:
           type: string
+          description: Az edzés neve
+          example: Láb nap
         datum:
-          format: date-time
           type: string
-          example: '2024-03-20T15:30:00.000Z'
-          description: Date of the exercise
+          description: Az edzés dátuma
+          example: '2024-03-20'
         user_id:
           type: number
+          description: A felhasználó azonosítója
+          example: 1
         ido:
           type: number
+          description: Az edzés időtartama percben
+          example: 60
     UpdateUserDto:
       type: object
       properties: {}
@@ -735,3 +1163,128 @@ components:
       required:
         - izomcsoport_id
         - izomcsoport_neve
+    CreateUserGyakorlatDto:
+      type: object
+      properties:
+        user_id:
+          type: number
+          description: A felhasználó azonosítója
+          example: 1
+        gyakorlat_id:
+          type: number
+          description: A gyakorlat azonosítója
+          example: 1
+        personal_best:
+          type: number
+          description: Személyes rekord súly
+          example: 100.5
+        last_weight:
+          type: number
+          description: Utoljára használt súly
+          example: 90.5
+        last_reps:
+          type: number
+          description: Utolsó ismétlésszám
+          example: 12
+      required:
+        - user_id
+        - gyakorlat_id
+    UserGyakorlat:
+      type: object
+      properties:
+        user_id:
+          type: number
+          description: A felhasználó azonosítója
+          example: 1
+        gyakorlat_id:
+          type: number
+          description: A gyakorlat azonosítója
+          example: 1
+        personal_best:
+          type: number
+          description: Személyes rekord súly
+          example: 100.5
+        last_weight:
+          type: number
+          description: Utoljára használt súly
+          example: 90.5
+        last_reps:
+          type: number
+          description: Utolsó ismétlésszám
+          example: 12
+        total_sets:
+          type: number
+          description: Összes elvégzett szett
+          example: 50
+        gyakorlat:
+          type: object
+          description: A gyakorlat adatai
+        history:
+          description: Edzés történet
+          type: array
+          items:
+            type: object
+      required:
+        - user_id
+        - gyakorlat_id
+        - total_sets
+    CreateUserGyakorlatHistoryDto:
+      type: object
+      properties:
+        user_id:
+          type: number
+          description: A felhasználó azonosítója
+          example: 1
+        gyakorlat_id:
+          type: number
+          description: A gyakorlat azonosítója
+          example: 1
+        weight:
+          type: number
+          description: Az edzésen használt súly
+          example: 100.5
+        reps:
+          type: number
+          description: Az elvégzett ismétlések száma
+          example: 12
+      required:
+        - user_id
+        - gyakorlat_id
+        - weight
+        - reps
+    UserGyakorlatokResponseDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            description: User-Gyakorlat kapcsolatok listája
+            type: array
+            items:
+              $ref: '#/components/schemas/UserGyakorlat'
+        meta:
+          description: Lapozási metaadatok
+          allOf:
+            - $ref: '#/components/schemas/PaginationMetaDto'
+      required:
+        - items
+        - meta
+    UserGyakorlatNotFoundDto:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 404
+          description: HTTP státusz kód
+        message:
+          type: string
+          example: 'Gyakorlat nem található az ID: 1 alapján'
+          description: Hibaüzenet
+        error:
+          type: string
+          example: Not Found
+          description: Hiba típusa
+      required:
+        - statusCode
+        - message
+        - error
