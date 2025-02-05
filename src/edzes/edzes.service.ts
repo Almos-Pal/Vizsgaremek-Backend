@@ -19,14 +19,15 @@ export class EdzesService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${createEdzesDto.user_id} not found`);
+      throw new NotFoundException(`A felhasználó (ID: ${createEdzesDto.user_id}) nem található.`);
+
     }
 
     // Létrehozzuk az edzést
     const edzes = await this.db.edzes.create({
       data: {
         edzes_neve: createEdzesDto.edzes_neve,
-        datum: new Date(createEdzesDto.datum),
+        datum: createEdzesDto.datum ? new Date(createEdzesDto.datum) : new Date(),
         user: { connect: { user_id: createEdzesDto.user_id } },
         ido: createEdzesDto.ido
       },
@@ -60,7 +61,7 @@ export class EdzesService {
       });
 
       if (!edzes) {
-        throw new NotFoundException(`Edzés with ID ${edzesId} not found or doesn't belong to user ${userId}`);
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
       }
 
       // Ellenőrizzük, hogy létezik-e a gyakorlat
@@ -69,7 +70,8 @@ export class EdzesService {
       });
 
       if (!gyakorlat) {
-        throw new NotFoundException(`Gyakorlat with ID ${gyakorlatDto.gyakorlat_id} not found`);
+        throw new NotFoundException(`A gyakorlat (ID: ${gyakorlatDto.gyakorlat_id}) nem található.`);
+
       }
 
       // Ellenőrizzük, hogy a gyakorlat nincs-e már hozzáadva az edzéshez
@@ -83,7 +85,7 @@ export class EdzesService {
       });
 
       if (existingGyakorlat) {
-        throw new ConflictException(`Gyakorlat with ID ${gyakorlatDto.gyakorlat_id} is already added to edzés ${edzesId}`);
+        throw new ConflictException(`A gyakorlat (ID: ${gyakorlatDto.gyakorlat_id}) már hozzá van adva az edzéshez (ID: ${edzesId}).`);
       }
 
       // Létrehozzuk az edzés-gyakorlat kapcsolatot
@@ -116,7 +118,8 @@ export class EdzesService {
           error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Failed to add gyakorlat to edzés: ' + error.message);
+      throw new BadRequestException('Hiba történt a gyakorlat hozzáadása során az edzéshez: ' + error.message);
+
     }
   }
 
@@ -136,7 +139,7 @@ export class EdzesService {
       });
 
       if (!edzes) {
-        throw new NotFoundException(`Edzés with ID ${edzesId} not found or doesn't belong to user ${userId}`);
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
       }
 
       // Ellenőrizzük, hogy létezik-e az edzés-gyakorlat kapcsolat
@@ -153,7 +156,7 @@ export class EdzesService {
       });
 
       if (!edzesGyakorlat) {
-        throw new NotFoundException(`Gyakorlat with ID ${gyakorlatId} not found in edzés ${edzesId}`);
+        throw new NotFoundException(`A gyakorlat  (ID:${gyakorlatId}) nem található  vagy nem tartozik a(z)${edzesId} edzéshez.`);
       }
 
       // Ellenőrizzük, hogy létezik-e már ilyen szettszám
@@ -162,7 +165,7 @@ export class EdzesService {
       );
 
       if (existingSet) {
-        throw new ConflictException(`Set number ${setDto.set_szam} already exists for this gyakorlat in this edzés`);
+        throw new ConflictException(`A (szett: ${setDto.set_szam}) már létezik a gyakorlatban az edzésben`);
       }
 
       const result = await this.db.$transaction(async (prisma) => {
@@ -183,7 +186,7 @@ export class EdzesService {
           }
         });
 
-        // Létrehozunk egy history bejegyzést
+        // Létrehozunk egy history bejegyzést az edzés dátumával
         await prisma.user_Gyakorlat_History.create({
           data: {
             user_gyakorlat: {
@@ -205,7 +208,8 @@ export class EdzesService {
               }
             },
             weight: setDto.weight,
-            reps: setDto.reps
+            reps: setDto.reps,
+            date: edzes.datum // Use the edzés's date for the history entry
           }
         });
 
@@ -264,7 +268,7 @@ export class EdzesService {
           error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Failed to add set to gyakorlat: ' + error.message);
+      throw new BadRequestException('Sikertelen a szett hozzáadása a gyakorlathoz: ' + error.message);
     }
   }
 
@@ -285,7 +289,8 @@ export class EdzesService {
       });
 
       if (!edzes) {
-        throw new NotFoundException(`Edzés with ID ${edzesId} not found or doesn't belong to user ${userId}`);
+        
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
       }
 
       // Ellenőrizzük, hogy létezik-e a szett
@@ -300,7 +305,7 @@ export class EdzesService {
       });
 
       if (!set) {
-        throw new NotFoundException(`Set with ID ${setId} not found in edzés ${edzesId} for gyakorlat ${gyakorlatId}`);
+        throw new NotFoundException(`A megadott szett (setID: ${setId}) nem található az edzésben (edzesID: ${edzesId}) a gyakorlatnál (gyakorlatID: ${gyakorlatId}).`);
       }
 
       // Csak a súlyt és az ismétlésszámot lehet módosítani
@@ -350,7 +355,8 @@ export class EdzesService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Failed to update set: ' + error.message);
+      throw new BadRequestException('Hiba történt a szett frissítése során: ' + error.message);
+
     }
   }
 
@@ -364,7 +370,7 @@ export class EdzesService {
     });
 
     if (!edzes) {
-      throw new NotFoundException(`Edzés with ID ${edzesId} not found or doesn't belong to user ${userId}`);
+      throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
     }
 
     // Ellenőrizzük, hogy létezik-e a szett
@@ -379,7 +385,8 @@ export class EdzesService {
     });
 
     if (!set) {
-      throw new NotFoundException(`Set with ID ${setId} not found in edzés ${edzesId} for gyakorlat ${gyakorlatId}`);
+      throw new NotFoundException(`A megadott szett (setID: ${setId}) nem található az edzésben (edzesID: ${edzesId}) a gyakorlatnál (gyakorlatID: ${gyakorlatId}).`);
+
     }
 
     // Töröljük a szettet
@@ -405,11 +412,18 @@ export class EdzesService {
     return result;
   }
 
-  private async getLatestGyakorlatHistory(gyakorlatId: number) {
-    // First get the latest history entry to determine the date
+  private async getLatestGyakorlatHistory(gyakorlatId: number, edzesDate: Date) {
+    // Create start of edzés day for comparison
+    const edzesStartOfDay = new Date(edzesDate);
+    edzesStartOfDay.setHours(0, 0, 0, 0);
+
+    // First get the latest history entry to determine the date, excluding entries from edzesDate
     const latestHistory = await this.db.user_Gyakorlat_History.findFirst({
       where: {
-        gyakorlat_id: gyakorlatId
+        gyakorlat_id: gyakorlatId,
+        date: {
+          lt: edzesStartOfDay // Get entries before the edzés date
+        }
       },
       orderBy: {
         date: 'desc'
@@ -427,13 +441,14 @@ export class EdzesService {
     const endOfDay = new Date(latestHistory.date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Get all history entries from that same day
+    // Get all history entries from that same day, ensuring they're before the edzés date
     return this.db.user_Gyakorlat_History.findMany({
       where: {
         gyakorlat_id: gyakorlatId,
         date: {
           gte: startOfDay,
-          lte: endOfDay
+          lte: endOfDay,
+          lt: edzesStartOfDay // Additional check to ensure entries are before edzés date
         }
       },
       orderBy: {
@@ -443,10 +458,16 @@ export class EdzesService {
   }
 
   async findAll(query: GetEdzesekQueryDto) {
-    const { skip, take, page, limit } = PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
+
+    // Build where clause based on filters
+    const where = {
+      ...(user_id ? { user_id } : {})
+    };
 
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
+        where,
         skip,
         take,
         include: {
@@ -468,9 +489,12 @@ export class EdzesService {
               }
             }
           }
+        },
+        orderBy: {
+          datum: 'desc'
         }
       }),
-      this.db.edzes.count()
+      this.db.edzes.count({ where })
     ]);
 
     // Only include total_sets in the response, no history
@@ -524,7 +548,8 @@ export class EdzesService {
     });
 
     if (!edzes) {
-      throw new NotFoundException(`Edzés with ID ${id} not found`);
+      throw new NotFoundException(`Az edzés (ID: ${id}) nem található.`);
+
     }
 
     // Get history for each gyakorlat from the latest history date
@@ -534,7 +559,8 @@ export class EdzesService {
         
         // Get all gyakorlat history entries from the latest history's date
         const history = await this.getLatestGyakorlatHistory(
-          gyakorlatConn.gyakorlat_id
+          gyakorlatConn.gyakorlat_id,
+          edzes.datum
         );
 
         return {
@@ -560,7 +586,8 @@ export class EdzesService {
     });
 
     if (!edzes) {
-      throw new NotFoundException(`Edzés with ID ${id} not found`);
+      throw new NotFoundException(`Az edzés (ID: ${id}) nem található.`);
+
     }
 
     const updatedEdzes = await this.db.edzes.update({
@@ -592,7 +619,8 @@ export class EdzesService {
       });
 
       if (!edzes) {
-        throw new NotFoundException(`Edzés with ID ${id} not found`);
+        throw new NotFoundException(`Az edzés (ID: ${id}) nem található.`);
+
       }
 
       // Tranzakcióban végezzük a törlést
@@ -641,59 +669,68 @@ export class EdzesService {
         });
       });
 
-      return { message: 'Edzés successfully deleted' };
+      return { message: 'Az edzés sikeresen törölve.' };
+
 
     } catch (error) {
-      throw new BadRequestException('Failed to delete edzés: ' + error.message);
+      throw new BadRequestException('Hiba történt az edzés törlése során: ' + error.message);
+
     }
   }
 
-  async getEdzesIzomcsoportok() {
-    const edzesek = await this.db.edzes.findMany({
-      include: {
-        gyakorlatok: {
-          include: {
-            gyakorlat: {
-              include: {
-                izomcsoportok: {
-                  include: {
-                    izomcsoport: true
+  async getEdzesIzomcsoportok(user_id?: number) {
+    try {
+      if (!user_id) {
+        throw new BadRequestException("Hiányzik az user_id" );
+      }
+  
+      const edzesek = await this.db.edzes.findMany({
+        where: { user_id },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: {
+                include: {
+                  izomcsoportok: {
+                    include: { izomcsoport: true }
                   }
                 }
               }
             }
           }
         }
+      });
+  
+      if (edzesek.length === 0) {
+        throw new Error("Nincsenek edzések az adott felhasználóhoz");
       }
-    });
-
-    // Összegyűjtjük az összes izomcsoportot és fő izomcsoportot
-    const izomcsoportMap = new Map<number, string>();
-    const foIzomcsoportMap = new Map<number, string>();
-
-    edzesek.forEach(edzes => {
-      edzes.gyakorlatok.forEach(gyakorlatConn => {
-        const gyakorlat = gyakorlatConn.gyakorlat;
-        
-        // Fő izomcsoport hozzáadása
-        if (gyakorlat.fo_izomcsoport) {
-          foIzomcsoportMap.set(gyakorlat.fo_izomcsoport, 'Fő izomcsoport');
-        }
-
-        // Többi izomcsoport hozzáadása
-        gyakorlat.izomcsoportok.forEach(conn => {
-          const izomcsoport = conn.izomcsoport;
-          izomcsoportMap.set(izomcsoport.izomcsoport_id, izomcsoport.nev);
+  
+      const izomcsoportMap = new Map<number, string>();
+      const foIzomcsoportMap = new Map<number, string>();
+  
+      edzesek.forEach(edzes => {
+        edzes.gyakorlatok.forEach(gyakorlatConn => {
+          const gyakorlat = gyakorlatConn.gyakorlat;
+          
+          if (gyakorlat.fo_izomcsoport) {
+            foIzomcsoportMap.set(gyakorlat.fo_izomcsoport, "Fő izomcsoport");
+          }
+  
+          gyakorlat.izomcsoportok.forEach(conn => {
+            izomcsoportMap.set(conn.izomcsoport.izomcsoport_id, conn.izomcsoport.nev);
+          });
         });
       });
-    });
-
-    return {
-      izomcsoportok: Array.from(izomcsoportMap.keys()),
-      fo_izomcsoportok: Array.from(foIzomcsoportMap.keys())
-    };
+  
+      return {
+        izomcsoportok: Array.from(izomcsoportMap.keys()),
+        fo_izomcsoportok: Array.from(foIzomcsoportMap.keys())
+      };
+    } catch (error) {
+      throw new BadRequestException('Hiba az izomcsoportok lekérése során: ' + error.message);
+    }
   }
-
+  
   async removeUserGyakorlat(userId: number, gyakorlatId: number) {
     try {
       await this.db.$transaction(async (prisma) => {
@@ -738,13 +775,14 @@ export class EdzesService {
         });
       });
 
-      return { message: 'Gyakorlat successfully removed from user' };
+      return { message: 'Gyakorlat sikeresen törölve a felhasználok közül' };
 
     } catch (error) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`User gyakorlat not found for user ${userId} and gyakorlat ${gyakorlatId}`);
+        throw new NotFoundException(`A megadott gyakorlat nem található a felhasználónál (user: ${userId}, gyakorlat: ${gyakorlatId}).`);
       }
-      throw new BadRequestException('Failed to remove gyakorlat from user: ' + error.message);
+      throw new BadRequestException('Hiba történt a gyakorlat eltávolítása közben: ' + error.message);
     }
+    
   }
 }
