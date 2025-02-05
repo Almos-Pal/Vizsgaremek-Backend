@@ -26,18 +26,33 @@ paths:
     get:
       description: >-
         Lekéri az összes edzést a hozzájuk tartozó gyakorlatokkal és
-        felhasználókkal együtt
+        izomcsoportokkal együtt
       operationId: findAll
-      parameters: []
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Oldalszám
+          schema:
+            minimum: 1
+            default: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Elemek száma oldalanként
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 10
+            type: number
       responses:
         '200':
           description: Az edzések sikeresen lekérve
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Edzes'
+                $ref: '#/components/schemas/EdzesekResponseDto'
       summary: Összes edzés lekérése
       tags:
         - Edzes
@@ -204,9 +219,39 @@ paths:
       summary: Szett törlése
       tags:
         - Edzes
+  /edzes/izomcsoportok:
+    get:
+      description: >-
+        Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az
+        edzésekben
+      operationId: getEdzesIzomcsoportok
+      parameters: []
+      responses:
+        '200':
+          description: Az izomcsoportok sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  izomcsoportok:
+                    type: array
+                    items:
+                      type: number
+                    description: Az összes érintett izomcsoport azonosítója
+                  fo_izomcsoportok:
+                    type: array
+                    items:
+                      type: number
+                    description: Az összes érintett fő izomcsoport azonosítója
+      summary: Edzésekben használt izomcsoportok lekérése
+      tags:
+        - Edzes
   /edzes/{id}:
     get:
-      description: Lekér egy edzést az azonosítója alapján
+      description: >-
+        Lekér egy edzést az azonosítója alapján a gyakorlatokkal és
+        izomcsoportokkal együtt
       operationId: findOne
       parameters:
         - name: id
@@ -764,41 +809,65 @@ components:
           example: 1
         weight:
           type: number
-          description: Az elvégzett súly ebben a szettben
+          description: A gyakorlat súlya
           example: 100.5
         reps:
           type: number
-          description: Az elvégzett ismétlések száma ebben a szettben
+          description: Az ismétlések száma
           example: 12
       required:
         - id
         - set_szam
         - weight
         - reps
-    EdzesExercise:
+    UserGyakorlatHistory:
       type: object
       properties:
-        edzes_id:
+        weight:
           type: number
-          description: Az edzés azonosítója
-          example: 1
+          description: A gyakorlat súlya
+        reps:
+          type: number
+          description: Az ismétlések száma
+        date:
+          format: date-time
+          type: string
+          description: A bejegyzés dátuma
+      required:
+        - weight
+        - reps
+        - date
+    EdzesGyakorlat:
+      type: object
+      properties:
         gyakorlat_id:
           type: number
           description: A gyakorlat azonosítója
           example: 1
+        gyakorlat:
+          type: object
+          description: A gyakorlat neve
+          example: Melledzés
         szettek:
           description: A gyakorlat szettjei
           type: array
           items:
             $ref: '#/components/schemas/EdzesGyakorlatSet'
-        gyakorlat:
-          type: object
-          description: A gyakorlat részletes adatai
+        total_sets:
+          type: number
+          description: A szettek száma
+          example: 12
+        previous_history:
+          description: Előző gyakorlat előzmények
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGyakorlatHistory'
       required:
-        - edzes_id
         - gyakorlat_id
-        - szettek
         - gyakorlat
+        - szettek
+        - total_sets
+        - previous_history
     Edzes:
       type: object
       properties:
@@ -815,24 +884,19 @@ components:
           type: string
           description: Az edzés dátuma
           example: '2024-03-15T10:00:00.000Z'
-        user_id:
-          type: number
-          description: A felhasználó azonosítója
-          example: 1
         ido:
           type: number
           description: Az edzés időtartama (percben)
           example: 60
         gyakorlatok:
-          description: Az edzésen végzett gyakorlatok
+          description: Az edzéshez tartozó gyakorlatok
           type: array
           items:
-            $ref: '#/components/schemas/EdzesExercise'
+            $ref: '#/components/schemas/EdzesGyakorlat'
       required:
         - edzes_id
         - edzes_neve
         - datum
-        - user_id
         - ido
         - gyakorlatok
     AddEdzesGyakorlatDto:
@@ -877,6 +941,47 @@ components:
       required:
         - weight
         - reps
+    PaginationMetaDto:
+      type: object
+      properties:
+        currentPage:
+          type: number
+          example: 1
+          description: Aktuális oldalszám
+        itemsPerPage:
+          type: number
+          example: 10
+          description: Elemek száma oldalanként
+        totalItems:
+          type: number
+          example: 100
+          description: Összes elem száma
+        totalPages:
+          type: number
+          example: 10
+          description: Összes oldal száma
+      required:
+        - currentPage
+        - itemsPerPage
+        - totalItems
+        - totalPages
+    EdzesekResponseDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            description: Edzések listája
+            type: array
+            items:
+              $ref: '#/components/schemas/Edzes'
+        meta:
+          description: Lapozási metaadatok
+          allOf:
+            - $ref: '#/components/schemas/PaginationMetaDto'
+      required:
+        - items
+        - meta
     UpdateEdzesDto:
       type: object
       properties:
@@ -912,10 +1017,6 @@ components:
           type: string
           example: Fekvenyomás
           description: A gyakorlat megnevezése
-        personal_best:
-          type: number
-          example: 100.5
-          description: Személyes rekord súly/ismétlésszám
         eszkoz:
           type: string
           example: Rúd
@@ -932,6 +1033,7 @@ components:
           type: number
           example: 1
           description: A felhasználó azonosítója
+          nullable: true
         izomcsoportok:
           example:
             - 1
@@ -943,7 +1045,6 @@ components:
             type: number
       required:
         - gyakorlat_neve
-        - user_id
         - izomcsoportok
     Gyakorlat:
       type: object
@@ -956,10 +1057,6 @@ components:
           type: string
           example: Bench Press
           description: A gyakorlat neve
-        personal_best:
-          type: number
-          example: 100.5
-          description: Személyes legjobb súly/rekord
         eszkoz:
           type: string
           example: Barbell
@@ -1039,30 +1136,6 @@ components:
         - gyakorlat_id
         - gyakorlat_neve
         - izomcsoportok
-    PaginationMetaDto:
-      type: object
-      properties:
-        currentPage:
-          type: number
-          example: 1
-          description: Aktuális oldalszám
-        itemsPerPage:
-          type: number
-          example: 10
-          description: Elemek száma oldalanként
-        totalItems:
-          type: number
-          example: 100
-          description: Összes elem száma
-        totalPages:
-          type: number
-          example: 10
-          description: Összes oldal száma
-      required:
-        - currentPage
-        - itemsPerPage
-        - totalItems
-        - totalPages
     GyakorlatokResponseDto:
       type: object
       properties:
@@ -1106,10 +1179,6 @@ components:
           type: string
           example: Fekvenyomás
           description: A gyakorlat megnevezése
-        personal_best:
-          type: number
-          example: 100.5
-          description: Személyes rekord súly/ismétlésszám
         eszkoz:
           type: string
           example: Rúd
@@ -1126,6 +1195,7 @@ components:
           type: number
           example: 1
           description: A felhasználó azonosítója
+          nullable: true
         izomcsoportok:
           example:
             - 1
