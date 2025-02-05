@@ -1,24 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GyakorlatController } from './gyakorlat.controller';
 import { GyakorlatService } from './gyakorlat.service';
-import { PrismaService } from '../prisma.service';
 
 describe('GyakorlatController', () => {
-  let gyakorlatController: GyakorlatController;
-  let gyakorlatService: GyakorlatService;
+  let controller: GyakorlatController;
 
   beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [GyakorlatController],
-      providers: [GyakorlatService, PrismaService],
+      providers: [GyakorlatService],
     }).compile();
 
-    gyakorlatController = moduleRef.get(GyakorlatController);
-    gyakorlatService = moduleRef.get(GyakorlatService);
+    controller = module.get<GyakorlatController>(GyakorlatController);
   });
 
-
   it('should be defined', () => {
-    expect(gyakorlatController).toBeDefined();
+    expect(controller).toBeDefined();
   });
 });
