@@ -60,9 +60,9 @@ export class CreateEdzesDto {
     description: 'Az edzés dátuma',
     example: '2024-03-20'
   })
-  @IsString()
-  @IsNotEmpty()
-  datum: string;
+  @IsOptional()
+  @IsDateString()
+  datum?: string;
 
   @ApiProperty({
     description: 'A felhasználó azonosítója',

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query 
 import { EdzesService } from './edzes.service';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
-import { ApiOperation, ApiResponse, ApiTags, ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Edzes } from './entities/edzes.entity';
 import { AddEdzesGyakorlatDto } from './dto/add-edzes-gyakorlat.dto';
 import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
@@ -208,6 +208,12 @@ export class EdzesController {
     summary: 'Edzésekben használt izomcsoportok lekérése', 
     description: 'Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az edzésekben' 
   })
+  @ApiQuery({
+    name: 'user_id',
+    description: 'A felhasználó azonosítója',
+    required: true,
+    type: 'number'
+  })
   @ApiResponse({ 
     status: 200, 
     description: 'Az izomcsoportok sikeresen lekérve',
@@ -227,8 +233,13 @@ export class EdzesController {
       }
     }
   })
-  getEdzesIzomcsoportok() {
-    return this.edzesService.getEdzesIzomcsoportok();
+
+  @ApiResponse({
+    status: 400,
+    description: 'Hibás kérés - Érvénytelen felhasználó azonosító'
+  })
+  getEdzesIzomcsoportok(@Query('user_id') userId: number) {
+    return this.edzesService.getEdzesIzomcsoportok( userId );
   }
 
   @Get(':id')

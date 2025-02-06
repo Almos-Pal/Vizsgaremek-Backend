@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsNumber, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
-export class GetEdzesekQueryDto {
+export class GetEdzesekQueryDto extends PaginationQueryDto {
     @ApiProperty({
         description: 'Oldalszám',
         required: false,
@@ -17,4 +20,14 @@ export class GetEdzesekQueryDto {
         maximum: 100
     })
     limit?: number = 10;
+
+    @ApiProperty({
+        description: 'Filter edzések by user ID',
+        required: false,
+        type: Number
+    })
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    user_id?: number;
 } 

@@ -87,7 +87,7 @@ model Edzesterv {
 model Edzes {
   edzes_id       Int                 @id @default(autoincrement())
   edzes_neve     String
-  datum          DateTime
+  datum          DateTime            @default(now())
   user_id        Int?
   ido            Int
   user           User?               @relation(fields: [user_id], references: [user_id])
