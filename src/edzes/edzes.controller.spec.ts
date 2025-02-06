@@ -8,8 +8,8 @@ describe('EdzesController', () => {
 
   let edzesController: EdzesController;
   let edzesService: EdzesService;
-  let asd: Edzes[]= [];
-   asd.push({edzes_id: 1, edzes_neve: "string", datum: new Date("2024-11-12"), user_id: 1, ido: 12});
+  let edzesMockData: Edzes[]= [];
+  edzesMockData.push({edzes_id: 1, edzes_neve: "string", datum: new Date("2024-11-12"), user_id: 1, ido: 12});
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,14 +23,14 @@ describe('EdzesController', () => {
 
   describe('findAll', () => {
     it('should return an array', () => {
-      jest.spyOn(edzesService, 'findAll').mockReturnValue( Promise.resolve(asd) as PrismaPromise<Edzes[]>);
-      expect(edzesController.findAll()).resolves.toEqual(asd);
+      jest.spyOn(edzesService, 'findAll').mockResolvedValue( edzesMockData);
+      expect(edzesController.findAll()).resolves.toEqual(edzesMockData);
     });
   });
   describe('findOne', () => {
     it('should return one element', () => {
-      jest.spyOn(edzesService, 'findOne').mockReturnValue( Promise.resolve(asd[0]) as PrismaPromise<Edzes>);
-      expect(edzesController.findOne(1)).resolves.toEqual(asd[0]);
+      jest.spyOn(edzesService, 'findOne').mockResolvedValue(edzesMockData[0]);
+      expect(edzesController.findOne(1)).resolves.toEqual(edzesMockData[0]);
     });
   });
   
