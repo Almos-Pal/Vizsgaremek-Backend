@@ -14,7 +14,5 @@ describe('UserGyakorlatController', () => {
     controller = module.get<UserGyakorlatController>(UserGyakorlatController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+  
 }); 

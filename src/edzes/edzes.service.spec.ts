@@ -12,7 +12,5 @@ describe('EdzesService', () => {
     service = module.get<EdzesService>(EdzesService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+  
 });

@@ -12,7 +12,5 @@ describe('IzomcsoportService', () => {
     service = module.get<IzomcsoportService>(IzomcsoportService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+  
 });

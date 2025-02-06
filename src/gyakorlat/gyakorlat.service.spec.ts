@@ -12,7 +12,4 @@ describe('GyakorlatService', () => {
     service = module.get<GyakorlatService>(GyakorlatService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
 });

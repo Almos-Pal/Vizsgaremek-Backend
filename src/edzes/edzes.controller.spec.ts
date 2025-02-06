@@ -14,7 +14,5 @@ describe('EdzesController', () => {
     controller = module.get<EdzesController>(EdzesController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+
 });

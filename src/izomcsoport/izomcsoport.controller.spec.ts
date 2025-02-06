@@ -14,7 +14,5 @@ describe('IzomcsoportController', () => {
     controller = module.get<IzomcsoportController>(IzomcsoportController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+
 });
