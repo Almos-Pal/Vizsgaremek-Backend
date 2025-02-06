@@ -23,6 +23,8 @@ model User {
   gyakorlatok      User_Gyakorlat[]   // Connection to exercises with personal data
   edzestervek      Edzesterv[]
   edzesek          Edzes[]
+  suly Int?
+  magassag Int?
 
   @@map("user")
 }
