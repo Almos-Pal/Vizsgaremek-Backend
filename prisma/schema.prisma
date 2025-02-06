@@ -16,15 +16,59 @@ datasource db {
 
 // USER TABLE
 model User {
-  user_id     Int       @id @default(autoincrement())
-  username    String
-  email       String @unique
-  password    String
-  gyakorlatok User_Gyakorlat[]
-  edzestervek Edzesterv[]
-  edzesek     Edzes[]
+  user_id          Int                @id @default(autoincrement())
+  username         String
+  email            String             @unique
+  password         String
+  gyakorlatok      User_Gyakorlat[]   // Connection to exercises with personal data
+  edzestervek      Edzesterv[]
+  edzesek          Edzes[]
 
   @@map("user")
+}
+
+// GYAKORLAT TABLE (Base exercise definitions)
+model Gyakorlat {
+  gyakorlat_id     Int                       @id @default(autoincrement())
+  gyakorlat_neve   String
+  eszkoz           String?
+  gyakorlat_leiras String?
+  fo_izomcsoport   Int?
+  user_id          Int?                      // Optional: creator of the exercise
+  users            User_Gyakorlat[]          // Users who have used this exercise
+  edzesek          Edzes_Gyakorlat[]        // Exercise instances in workouts
+  izomcsoportok    Gyakorlat_Izomcsoport[]  // Exercise muscle groups
+
+  @@map("gyakorlat")
+}
+
+// USER_GYAKORLAT JUNCTION TABLE (User's exercise data)
+model User_Gyakorlat {
+  user_id         Int
+  gyakorlat_id    Int
+  personal_best   Float?                    // User's personal best weight
+  last_weight     Float?                    // Last used weight
+  last_reps       Int?                      // Last used reps
+  total_sets      Int      @default(0)      // Total sets performed
+  history         User_Gyakorlat_History[]  // History of sets
+  user            User     @relation(fields: [user_id], references: [user_id])
+  gyakorlat       Gyakorlat @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
+
+  @@id([user_id, gyakorlat_id])
+}
+
+// USER_GYAKORLAT_HISTORY (Track each set performed)
+model User_Gyakorlat_History {
+  id              Int           @id @default(autoincrement())
+  user_id         Int
+  gyakorlat_id    Int
+  weight          Float
+  reps            Int
+  date            DateTime      @default(now())
+  user_gyakorlat  User_Gyakorlat @relation(fields: [user_id, gyakorlat_id], references: [user_id, gyakorlat_id])
+
+  @@index([user_id, gyakorlat_id])
+  @@map("user_gyakorlat_history")
 }
 
 // EDZÉSTERV TABLE
@@ -33,8 +77,8 @@ model Edzesterv {
   edzesterv_neve String
   napokszama     Int
   user_id        Int
-  user           User      @relation(fields: [user_id], references: [user_id]) // Many-to-one relationship to User
-  edzesek        Edzesterv_Edzes[] // Many-to-many relationship to Edzes
+  user           User      @relation(fields: [user_id], references: [user_id])
+  edzesek        Edzesterv_Edzes[]
 
   @@map("edzesterv")
 }
@@ -46,7 +90,7 @@ model Edzes {
   datum          DateTime
   user_id        Int?
   ido            Int
-  user           User?               @relation(fields: [user_id], references: [user_id]) // Many-to-one relationship to User
+  user           User?               @relation(fields: [user_id], references: [user_id])
   edzestervek    Edzesterv_Edzes[]   // Many-to-many relationship to Edzesterv
   gyakorlatok    Edzes_Gyakorlat[]   // Many-to-many relationship to Gyakorlat
   cardiok        Edzes_Cardio[]      // Many-to-many relationship to Cardio
@@ -65,48 +109,36 @@ model Edzesterv_Edzes {
   @@id([edzesterv_id, edzes_id]) // Composite primary key
 }
 
-
-model User_Gyakorlat {
-  user_id     Int
-  gyakorlat_id Int
-  user        User     @relation(fields: [user_id], references: [user_id])
-  gyakorlat    Gyakorlat @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
-
-  @@id([user_id, gyakorlat_id]) // Composite primary key
-}
-
-// GYAKORLAT TABLE
-model Gyakorlat {
-  gyakorlat_id     Int                  @id @default(autoincrement())
-  gyakorlat_neve   String
-  personal_best    Float?
-  eszkoz           String?
-  gyakorlat_leiras String?
-  fo_izomcsoport   Int?
-  user_id          Int? //optional foreign key for user_id to identify the user who created the exercise
-  users            User_Gyakorlat[]              // Many-to-many relationship to User
-  sets             Set[]               // One-to-many relationship to Set
-  edzesek          Edzes_Gyakorlat[]    // Many-to-many relationship to Edzes
-  izomcsoportok    Gyakorlat_Izomcsoport[] // Many-to-many relationship to Izomcsoport
-
-  @@map("gyakorlat")
-}
-
 // EDZÉS-GYAKORLAT JUNCTION TABLE
 model Edzes_Gyakorlat {
-  edzes_id     Int
-  gyakorlat_id Int
-  edzes        Edzes       @relation(fields: [edzes_id], references: [edzes_id])
-  gyakorlat    Gyakorlat   @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
+  edzes_id      Int
+  gyakorlat_id  Int
+  edzes         Edzes     @relation(fields: [edzes_id], references: [edzes_id])
+  gyakorlat     Gyakorlat @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
+  szettek       Edzes_Gyakorlat_Set[]
 
-  @@id([edzes_id, gyakorlat_id]) // Composite primary key
+  @@id([edzes_id, gyakorlat_id])
+}
+
+// EDZÉS-GYAKORLAT-SET TABLE (Track each set of an exercise in a workout)
+model Edzes_Gyakorlat_Set {
+  id              Int           @id @default(autoincrement())
+  edzes_id        Int
+  gyakorlat_id    Int
+  set_szam        Int          // Which set number is this (1, 2, 3, etc.)
+  weight          Float        // Weight used in this specific set
+  reps            Int         // Reps done in this specific set
+  edzes_gyakorlat Edzes_Gyakorlat @relation(fields: [edzes_id, gyakorlat_id], references: [edzes_id, gyakorlat_id])
+
+  @@unique([edzes_id, gyakorlat_id, set_szam])
+  @@map("edzes_gyakorlat_set")
 }
 
 // IZOMCSOPORT TABLE
 model Izomcsoport {
-  izomcsoport_id Int                  @id @default(autoincrement())
+  izomcsoport_id Int                      @id @default(autoincrement())
   nev            String
-  gyakorlatok    Gyakorlat_Izomcsoport[] // Many-to-many relationship to Gyakorlat
+  gyakorlatok    Gyakorlat_Izomcsoport[]
 
   @@map("izomcsoport")
 }
@@ -116,32 +148,32 @@ model Izomcsoport {
 model Gyakorlat_Izomcsoport {
   gyakorlat_id    Int
   izomcsoport_id  Int
-  gyakorlat       Gyakorlat      @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
-  izomcsoport     Izomcsoport    @relation(fields: [izomcsoport_id], references: [izomcsoport_id])
+  gyakorlat       Gyakorlat    @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
+  izomcsoport     Izomcsoport @relation(fields: [izomcsoport_id], references: [izomcsoport_id])
 
-  @@id([gyakorlat_id, izomcsoport_id]) // Composite primary key
+  @@id([gyakorlat_id, izomcsoport_id])
 }
 
 
 // SET TABLE
-model Set {
-  set_id       Int        @id @default(autoincrement())
-  ismetles     Int
-  suly         Float
-  gyakorlat_id Int
-  gyakorlat    Gyakorlat  @relation(fields: [gyakorlat_id], references: [gyakorlat_id]) // Many-to-one relationship to Gyakorlat
+// model Set {
+//   set_id       Int        @id @default(autoincrement())
+//   ismetles     Int
+//   suly         Float
+//   gyakorlat_id Int
+//   gyakorlat    Gyakorlat  @relation(fields: [gyakorlat_id], references: [gyakorlat_id]) // Many-to-one relationship to Gyakorlat
 
-  @@map("set")
-}
+//   @@map("set")
+// }
 
 
 // CARDIO TABLE
 model Cardio {
-  cardio_id    Int            @id @default(autoincrement())
+  cardio_id     Int            @id @default(autoincrement())
   kardio_tipusa String
-  kaloria      Int?
-  ido          Int
-  edzesek      Edzes_Cardio[]  // Many-to-many relationship to Edzes
+  kaloria       Int?
+  ido           Int
+  edzesek       Edzes_Cardio[]
 
   @@map("cardio")
 }
@@ -150,8 +182,8 @@ model Cardio {
 model Edzes_Cardio {
   edzes_id  Int
   cardio_id Int
-  edzes     Edzes   @relation(fields: [edzes_id], references: [edzes_id])
-  cardio    Cardio  @relation(fields: [cardio_id], references: [cardio_id])
+  edzes     Edzes  @relation(fields: [edzes_id], references: [edzes_id])
+  cardio    Cardio @relation(fields: [cardio_id], references: [cardio_id])
 
-  @@id([edzes_id, cardio_id]) // Composite primary key
+  @@id([edzes_id, cardio_id])
 }

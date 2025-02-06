@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-      await prisma.gyakorlat_Izomcsoport.deleteMany(); 
+    await prisma.gyakorlat_Izomcsoport.deleteMany();
     await prisma.izomcsoport.deleteMany();
     // TODO: késöbb nézzünk vissza ide, nem tudom mennyire zavar be ha az összes létező gyakorlatot töröljük
-   // await prisma.gyakorlat.deleteMany();  
+    // await prisma.gyakorlat.deleteMany();  
 
     await prisma.izomcsoport.createMany({
       data: [

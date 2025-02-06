@@ -5,11 +5,9 @@ export class LoginDto {
 
     @IsDefined()
     @IsString()
-    @IsEmail()
     email: string;
     
     @IsDefined()
     @IsString()
-    @IsStrongPassword()
     password: string;
 }

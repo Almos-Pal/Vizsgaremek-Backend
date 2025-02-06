@@ -18,7 +18,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed:izomcsoportok": "ts-node prisma/seeds/izomcsoportok.ts"
+    "seed:izomcsoportok": "ts-node prisma/seeds/izomcsoportok.ts",
+    "seed:gyakorlatok": "ts-node prisma/seeds/gyakorlatok.ts",
+    "seed:users": "ts-node prisma/seeds/users.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
@@ -32,6 +34,10 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "csv-parse": "^5.6.0",
+    "csv-parser": "^3.1.0",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

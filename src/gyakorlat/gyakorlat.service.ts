@@ -17,6 +17,12 @@ export class GyakorlatService {
     if ('gyakorlat_id' in createGyakorlatDto) {
       throw new BadRequestException('A gyakorlat azonosítót nem lehet megadni');
     }
+    if (izomcsoportok?.length) {
+      const uniqueIzomcsoportok = new Set(izomcsoportok);
+      if (uniqueIzomcsoportok.size !== izomcsoportok.length) {
+      throw new BadRequestException('Az izomcsoportok között ismétlődő értékek találhatók');
+      }
+    }
 
     if (izomcsoportok?.length) {
       const existingMuscleGroups = await this.prisma.izomcsoport.findMany({
@@ -78,7 +84,6 @@ export class GyakorlatService {
     return {
       gyakorlat_id: gyakorlat.gyakorlat_id,
       gyakorlat_neve: gyakorlat.gyakorlat_neve,
-      personal_best: gyakorlat.personal_best,
       eszkoz: gyakorlat.eszkoz,
       gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
       fo_izomcsoport: gyakorlat.fo_izomcsoport,
@@ -90,8 +95,53 @@ export class GyakorlatService {
   async findAll(query: GetGyakorlatokQueryDto): Promise<GyakorlatokResponseDto> {
     const { skip, take, page, limit } = PaginationHelper.getPaginationOptions(query);
 
+    // Build where clause based on query parameters
+    const where: any = {};
+
+    // Filter by name if provided
+    if (query.nev) {
+      where.gyakorlat_neve = {
+        contains: query.nev,
+        mode: 'insensitive' // Case-insensitive search
+      };
+    }
+
+    // Filter by main muscle group if provided
+    if (query.izomcsoportId) {
+      where.fo_izomcsoport = query.izomcsoportId;
+    }
+
+    // Filter by equipment if provided
+    if (query.eszkoz) {
+      where.eszkoz = {
+        contains: query.eszkoz,
+        mode: 'insensitive' // Case-insensitive search
+      };
+    }
+
+    // Filter by muscle groups if provided - exact match
+    if (query.izomcsoportok?.length) {
+      where.izomcsoportok = {
+        every: {
+          izomcsoport: {
+            izomcsoport_id: {
+              in: query.izomcsoportok
+            }
+          }
+        },
+        none: {
+          izomcsoport: {
+            izomcsoport_id: {
+              notIn: query.izomcsoportok
+            }
+          }
+        }
+      };
+    }
+
     const [items, total] = await Promise.all([
       this.prisma.gyakorlat.findMany({
+        where,
         skip,
         take,
         include: {
@@ -106,7 +156,7 @@ export class GyakorlatService {
           }
         }
       }),
-      this.prisma.gyakorlat.count()
+      this.prisma.gyakorlat.count({ where })
     ]);
 
     const mappedItems: GyakorlatListItemDto[] = items.map(item => ({
@@ -146,7 +196,6 @@ export class GyakorlatService {
     return {
       gyakorlat_id: gyakorlat.gyakorlat_id,
       gyakorlat_neve: gyakorlat.gyakorlat_neve,
-      personal_best: gyakorlat.personal_best,
       eszkoz: gyakorlat.eszkoz,
       gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
       fo_izomcsoport: gyakorlat.fo_izomcsoport,
@@ -163,6 +212,12 @@ export class GyakorlatService {
 
       const { izomcsoportok, ...gyakorlatData } = updateGyakorlatDto;
 
+      if (izomcsoportok?.length) {
+        const uniqueIzomcsoportok = new Set(izomcsoportok);
+        if (uniqueIzomcsoportok.size !== izomcsoportok.length) {
+          throw new BadRequestException('Az izomcsoportok között ismétlődő értékek találhatók');
+        }
+      }
 
       if (izomcsoportok?.length) {
         const existingMuscleGroups = await this.prisma.izomcsoport.findMany({
@@ -205,7 +260,6 @@ export class GyakorlatService {
         where: { gyakorlat_id: id },
         data: {
           gyakorlat_neve: updateGyakorlatDto.gyakorlat_neve,
-          personal_best: updateGyakorlatDto.personal_best,
           eszkoz: updateGyakorlatDto.eszkoz,
           gyakorlat_leiras: updateGyakorlatDto.gyakorlat_leiras,
           fo_izomcsoport: updateGyakorlatDto.fo_izomcsoport,
@@ -235,7 +289,6 @@ export class GyakorlatService {
       return {
         gyakorlat_id: gyakorlat.gyakorlat_id,
         gyakorlat_neve: gyakorlat.gyakorlat_neve,
-        personal_best: gyakorlat.personal_best,
         eszkoz: gyakorlat.eszkoz,
         gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
         fo_izomcsoport: gyakorlat.fo_izomcsoport,
@@ -266,6 +319,18 @@ export class GyakorlatService {
 
       await this.prisma.$transaction([
         this.prisma.gyakorlat_Izomcsoport.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
+        this.prisma.edzes_Gyakorlat_Set.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
+        this.prisma.user_Gyakorlat_History.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
+        this.prisma.edzes_Gyakorlat.deleteMany({
+          where: { gyakorlat_id: id }
+        }),
+        this.prisma.user_Gyakorlat.deleteMany({
           where: { gyakorlat_id: id }
         }),
         this.prisma.gyakorlat.delete({
