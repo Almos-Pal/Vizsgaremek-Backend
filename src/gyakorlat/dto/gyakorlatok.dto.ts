@@ -20,7 +20,6 @@ export class GyakorlatokResponseDto implements PaginatedResponseDto<GyakorlatLis
     meta: PaginationMetaDto;
 }
 
-// Optional: Query parameters DTO for filtering and pagination
 export class GetGyakorlatokQueryDto {
     @ApiProperty({
         description: 'Oldalszám',

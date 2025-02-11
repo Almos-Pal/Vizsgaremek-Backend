@@ -44,7 +44,6 @@ export class GyakorlatService {
       }
     }
 
-    // Validate main muscle group if provided
     if (gyakorlatData.fo_izomcsoport) {
       const mainMuscleExists = await this.prisma.izomcsoport.findUnique({
         where: {
@@ -95,31 +94,26 @@ export class GyakorlatService {
   async findAll(query: GetGyakorlatokQueryDto): Promise<GyakorlatokResponseDto> {
     const { skip, take, page, limit } = PaginationHelper.getPaginationOptions(query);
 
-    // Build where clause based on query parameters
     const where: any = {};
 
-    // Filter by name if provided
     if (query.nev) {
       where.gyakorlat_neve = {
         contains: query.nev,
-        mode: 'insensitive' // Case-insensitive search
+        mode: 'insensitive' 
       };
     }
 
-    // Filter by main muscle group if provided
     if (query.izomcsoportId) {
       where.fo_izomcsoport = query.izomcsoportId;
     }
 
-    // Filter by equipment if provided
     if (query.eszkoz) {
       where.eszkoz = {
         contains: query.eszkoz,
-        mode: 'insensitive' // Case-insensitive search
+        mode: 'insensitive' 
       };
     }
 
-    // Filter by muscle groups if provided - exact match
     if (query.izomcsoportok?.length) {
       where.izomcsoportok = {
         every: {
@@ -239,7 +233,6 @@ export class GyakorlatService {
         }
       }
   
-      // Validate main muscle group if provided
       if (gyakorlatData.fo_izomcsoport) {
         const mainMuscleExists = await this.prisma.izomcsoport.findUnique({
           where: {

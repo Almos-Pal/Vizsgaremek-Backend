@@ -60,7 +60,6 @@ export class UsersService {
 
   async remove(id: number) {
     try {
-      // Check if user exists
       const user = await this.db.user.findUnique({
         where: { user_id: id }
       });
@@ -69,14 +68,14 @@ export class UsersService {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      // Delete all related data in a transaction
+      // Minden kapcsolódó adat törlése tranzakcióban
       await this.db.$transaction(async (prisma) => {
-        // 1. Delete all user gyakorlat history entries
+        // Az összes user gyakorlat history bejegyzés törlése
         await prisma.user_Gyakorlat_History.deleteMany({
           where: { user_id: id }
         });
 
-        // 2. Delete all edzes gyakorlat sets
+        // az összes edzes gyakorlat set bejgyezés törlése
         await prisma.edzes_Gyakorlat_Set.deleteMany({
           where: {
             edzes_gyakorlat: {
@@ -87,7 +86,7 @@ export class UsersService {
           }
         });
 
-        // 3. Delete all edzes gyakorlat connections
+        // Az összes edzes gyakorlat kapcsolat törlése
         await prisma.edzes_Gyakorlat.deleteMany({
           where: {
             edzes: {
@@ -96,17 +95,17 @@ export class UsersService {
           }
         });
 
-        // 4. Delete all edzés entries
+        // Az összes edzés bejegyzés törlése
         await prisma.edzes.deleteMany({
           where: { user_id: id }
         });
 
-        // 5. Delete all user gyakorlat connections
+        // Az összes  user gyakorlat kapcsolat
         await prisma.user_Gyakorlat.deleteMany({
           where: { user_id: id }
         });
 
-        // 6. Finally delete the user
+        // Végül a user törlése
         await prisma.user.delete({
           where: { user_id: id }
         });

@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiExcludeController } from '@nestjs/swagger';
 
-@ApiExcludeController()  // This will hide the entire controller from Swagger docs
+@ApiExcludeController() 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

@@ -209,7 +209,7 @@ export class EdzesService {
             },
             weight: setDto.weight,
             reps: setDto.reps,
-            date: edzes.datum // Use the edzés's date for the history entry
+            date: edzes.datum 
           }
         });
 
@@ -413,16 +413,15 @@ export class EdzesService {
   }
 
   private async getLatestGyakorlatHistory(gyakorlatId: number, edzesDate: Date) {
-    // Create start of edzés day for comparison
+    // Létrehozzuk az adott napi edzést összehasonlításra
     const edzesStartOfDay = new Date(edzesDate);
     edzesStartOfDay.setHours(0, 0, 0, 0);
 
-    // First get the latest history entry to determine the date, excluding entries from edzesDate
     const latestHistory = await this.db.user_Gyakorlat_History.findFirst({
       where: {
         gyakorlat_id: gyakorlatId,
         date: {
-          lt: edzesStartOfDay // Get entries before the edzés date
+          lt: edzesStartOfDay 
         }
       },
       orderBy: {
@@ -434,21 +433,21 @@ export class EdzesService {
       return [];
     }
 
-    // Get the start and end of that date
+    // Beállítjuk az elejét és a végét az adott napnak
     const startOfDay = new Date(latestHistory.date);
     startOfDay.setHours(0, 0, 0, 0);
     
     const endOfDay = new Date(latestHistory.date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Get all history entries from that same day, ensuring they're before the edzés date
+    // Lekérjük az összes múltbeli adatot, biztosítva, hogy az edzésnél régebben vannak
     return this.db.user_Gyakorlat_History.findMany({
       where: {
         gyakorlat_id: gyakorlatId,
         date: {
           gte: startOfDay,
           lte: endOfDay,
-          lt: edzesStartOfDay // Additional check to ensure entries are before edzés date
+          lt: edzesStartOfDay
         }
       },
       orderBy: {
@@ -460,7 +459,6 @@ export class EdzesService {
   async findAll(query: GetEdzesekQueryDto) {
     const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
 
-    // Build where clause based on filters
     const where = {
       ...(user_id ? { user_id } : {})
     };
@@ -497,7 +495,7 @@ export class EdzesService {
       this.db.edzes.count({ where })
     ]);
 
-    // Only include total_sets in the response, no history
+    // Csak a szettek kiiratása adatok nélkül
     const enrichedEdzesek = edzesek.map((edzes) => {
       const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
         const total_sets = gyakorlatConn.szettek.length;
@@ -552,12 +550,10 @@ export class EdzesService {
 
     }
 
-    // Get history for each gyakorlat from the latest history date
     const gyakorlatokWithHistory = await Promise.all(
       edzes.gyakorlatok.map(async (gyakorlatConn) => {
         const total_sets = gyakorlatConn.szettek.length;
         
-        // Get all gyakorlat history entries from the latest history's date
         const history = await this.getLatestGyakorlatHistory(
           gyakorlatConn.gyakorlat_id,
           edzes.datum

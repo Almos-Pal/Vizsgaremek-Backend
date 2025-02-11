@@ -9,14 +9,6 @@ export class CreateGyakorlatDto {
     @IsString()
     gyakorlat_neve: string;
 
-    // @ApiProperty({
-    //     example: 100.5,
-    //     description: 'Személyes rekord súly/ismétlésszám',
-    //     required: false
-    // })
-    // @IsOptional()
-    // @IsNumber()
-    // personal_best?: number;
 
     @ApiProperty({
         example: 'Rúd',
