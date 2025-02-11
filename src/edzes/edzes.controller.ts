@@ -86,6 +86,7 @@ export class EdzesController {
     description: 'A felhasználó azonosítója',
     type: 'number'
   })
+  
   deleteGyakorlatFromEdzes(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
