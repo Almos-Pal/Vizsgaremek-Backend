@@ -612,6 +612,63 @@ export class EdzesService {
     return result;
   }
 
+  async deleteGyakorlatFromEdzes(edzesId: number, userId: number, gyakorlatId: number) {
+    
+    try {
+      const edzes = await this.db.edzes.findUnique({ where: { edzes_id: edzesId } });
+
+      if (!edzes) {
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található.`);
+      }
+
+      // Ellenőrizzük, hogy a gyakorlat hozzá van-e adva az edzéshez
+      const edzesGyakorlat = await this.db.edzes_Gyakorlat.findUnique({
+        where: {
+          edzes_id_gyakorlat_id: {
+            edzes_id: edzesId,
+            gyakorlat_id: gyakorlatId
+          }
+        }
+      });
+
+      if (!edzesGyakorlat) {
+        throw new NotFoundException(`A gyakorlat (ID: ${gyakorlatId}) nem található az edzésben (ID: ${edzesId}).`);
+      }
+
+      // Töröljük az edzés-gyakorlat kapcsolatot
+      await this.db.edzes_Gyakorlat.delete({
+        where: {
+          edzes_id_gyakorlat_id: {
+            edzes_id: edzesId,
+            gyakorlat_id: gyakorlatId
+          }
+        }
+      });
+
+      // Töröljük a history bejegyzéseket
+      await this.db.user_Gyakorlat_History.deleteMany({
+        where: {
+          user_id: userId,
+          gyakorlat_id: gyakorlatId
+        }
+      });
+
+      // töröljük a szetteket
+      await this.db.edzes_Gyakorlat_Set.deleteMany({
+        where: {
+          edzes_gyakorlat: {
+            edzes_id: edzesId,
+            gyakorlat_id: gyakorlatId
+          }
+        }
+      });
+
+      
+    } catch (error) {
+      throw new BadRequestException('Hiba történt az edzés törlése során: ' + error.message);
+    }
+  }
+
   async remove(id: number) {
     try {
       const edzes = await this.db.edzes.findUnique({

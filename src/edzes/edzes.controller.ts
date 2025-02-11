@@ -65,6 +65,36 @@ export class EdzesController {
     return this.edzesService.addGyakorlatToEdzes(id, userId, gyakorlatDto);
   }
 
+
+  @Delete(':id/gyakorlat/:gyakorlatId/:userId')
+  @ApiOperation({
+    summary: 'Gyakorlat törlése edzésből',
+    description: 'Törli a gyakorlatot az edzésből és a felhasználó történetéből'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Az edzés azonosítója',
+    type: 'number'
+  })
+  @ApiParam({
+    name: 'gyakorlatId',
+    description: 'A gyakorlat azonosítója',
+    type: 'number'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number'
+  })
+  deleteGyakorlatFromEdzes(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
+    @Param('userId', ParseIntPipe) userId: number
+  ) {
+      return this.edzesService.deleteGyakorlatFromEdzes(id, gyakorlatId, userId)
+  }
+
+
   @Post(':id/gyakorlat/:gyakorlatId/set/:userId')
   @ApiOperation({ 
     summary: 'Szett hozzáadása gyakorlathoz',
