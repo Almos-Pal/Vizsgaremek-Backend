@@ -785,4 +785,62 @@ export class EdzesService {
     }
     
   }
+  async findOneByDate(user_Id:number,date: string) {
+    const edzes = await this.db.edzes.findMany({
+      where: {datum: new Date(date),AND:{user_id:user_Id}},
+      include: {
+        gyakorlatok: {
+          include: {
+            gyakorlat: {
+              include: {
+                izomcsoportok: {
+                  include: {
+                    izomcsoport: true
+                  }
+                }
+              }
+            },
+            szettek: {
+              orderBy: {
+                set_szam: 'asc'
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    
+    if (!edzes) {
+      throw new NotFoundException(`Az edzés (ID: ${date}) nem található.`);
+
+    }
+
+    // Get history for each gyakorlat from the latest history date
+    const gyakorlatokWithHistory = await Promise.all(
+      edzes[0].gyakorlatok.map(async (gyakorlatConn) => {
+        const total_sets = gyakorlatConn.szettek.length;
+        
+        // Get all gyakorlat history entries from the latest history's date
+        const history = await this.getLatestGyakorlatHistory(
+          gyakorlatConn.gyakorlat_id,
+          edzes[0].datum
+        );
+
+        return {
+          ...gyakorlatConn,
+          total_sets,
+          previous_history: history
+        };
+      })
+    );
+
+    //  hozzáadjuk a gyakorlat előzményeket
+    const result  = {
+      ...edzes,
+      gyakorlatok: gyakorlatokWithHistory
+     };
+
+     return result[0];
+ }
 }
