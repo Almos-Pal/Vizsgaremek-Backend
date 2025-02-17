@@ -523,6 +523,7 @@ export class EdzesService {
   }
 
   async findOne(id: number) {
+    
     const edzes = await this.db.edzes.findUnique({
       where: { edzes_id: id },
       include: {
@@ -786,6 +787,7 @@ export class EdzesService {
     
   }
   async findOneByDate(user_Id:number,date: string) {
+    try{
     const edzes = await this.db.edzes.findMany({
       where: {datum: new Date(date),AND:{user_id:user_Id}},
       include: {
@@ -809,12 +811,9 @@ export class EdzesService {
         }
       }
     });
-    
-    
     if (!edzes) {
       throw new NotFoundException(`Az edzés (ID: ${date}) nem található.`);
-
-    }
+    }    
 
     // Get history for each gyakorlat from the latest history date
     const gyakorlatokWithHistory = await Promise.all(
@@ -840,7 +839,11 @@ export class EdzesService {
       ...edzes,
       gyakorlatok: gyakorlatokWithHistory
      };
-
      return result[0];
+
+    }catch (error) {
+      throw new NotFoundException("vagy nincs ilyen user, vagy ennek a usernek nincs ilyen dátumu edzése")
+    }
+      
  }
 }
