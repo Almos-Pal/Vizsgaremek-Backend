@@ -28,4 +28,9 @@ export class UsersController {
   async remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
+
+  @Get(':id/bmi')
+  async getBMI(@Param('id') id: string) {
+    return this.usersService.getBMI(+id);
+  }
 }

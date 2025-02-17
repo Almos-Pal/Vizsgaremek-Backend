@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import { hash } from 'bcrypt';
+import getBmiCategory from 'src/common/helpers/bmi';
 
 @Injectable()
 export class UsersService {
@@ -127,5 +128,40 @@ export class UsersService {
         email: email
       }
     });
+  }
+
+  async getBMI(id: number) {
+    try{
+      const user = await this.db.user.findUnique({
+        where: { user_id: id }
+      });
+  
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+      if(user.suly === null || user.magassag === null) {
+        throw new BadRequestException('User weight or height is not set');
+      
+      }
+      
+
+      
+      
+      const bmi = user.suly / ((user.magassag / 100) ** 2);
+
+
+      const type = getBmiCategory(bmi);
+      
+      return { 
+        bmi: bmi.toFixed(2),
+        type: type
+      };
+    } catch(error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to calculate BMI: ' + error.message);
+    }
+ 
   }
 }
