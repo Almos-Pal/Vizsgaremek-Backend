@@ -15,6 +15,39 @@ import { EdzesekResponseDto } from './dto/edzesek-response.dto';
 export class EdzesController {
   constructor(private readonly edzesService: EdzesService) {}
 
+
+  @Get('heti')
+  @ApiOperation({ 
+    summary: 'Egy user adott napi edzésének részletes adatai',
+    description: 'Lekér egy edzést a user azonosítója és az edzés dátuma alapján a gyakorlatokkal és izomcsoportokkal együtt'
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    required: true,
+    type: 'number'
+  })
+  @ApiQuery({
+    name: 'date',
+    description: 'Az edzés dátuma',
+    required: true,
+    type: 'string'})
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Az edzés sikeresen lekérve',
+    type: Edzes
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Az edzés nem található' 
+  })
+  findManyByDate(@Query('userId') userId:number, @Query('startDate') startDate:string,@Query('startDate') endDate:string) {
+
+    return this.edzesService.findManyByDate(userId,startDate,endDate);
+  }
+  
+
+
   @Post()
   @ApiOperation({ 
     summary: 'Új edzés létrehozása',
@@ -233,6 +266,8 @@ export class EdzesController {
       }
     }
   })
+
+
 
   @ApiResponse({
     status: 400,

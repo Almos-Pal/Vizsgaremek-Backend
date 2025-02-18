@@ -781,4 +781,82 @@ export class EdzesService {
     }
     
   }
+  
+ async findManyByDate(user_Id:number,startDate: string, endDate: string) {
+  try{
+    console.log(startDate+" "+new Date(startDate))  
+  const edzes = await this.db.edzes.findMany({
+    where: {
+      AND:[
+        {
+          datum: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
+          },
+        },
+          {
+            user_id:user_Id
+          }
+      ]
+    },     
+    include: {
+      gyakorlatok: {
+        include: {
+          gyakorlat: {
+            include: {
+              izomcsoportok: {
+                include: {
+                  izomcsoport: true
+                }
+              }
+            }
+          },
+          szettek: {
+            orderBy: {
+              set_szam: 'asc'
+            }
+          }
+        }
+      }
+    }
+  });
+  if (!edzes) {
+    throw new NotFoundException(`Az edzés (ID: ${startDate}) nem található.`);
+  }    
+
+  // Get history for each gyakorlat from the latest history date
+  const gyakorlatokWithHistory = await Promise.all(
+    edzes.map(async (edzess) => {
+      edzess.gyakorlatok.map(async (gyakorlatConn) => {
+      const total_sets = gyakorlatConn.szettek.length;
+      
+      // Get all gyakorlat history entries from the latest history's date
+      const history = await this.getLatestGyakorlatHistory(
+        gyakorlatConn.gyakorlat_id,
+        edzess.datum
+      );
+
+      return {
+        ...gyakorlatConn,
+        total_sets,
+        previous_history: history
+      };
+    })
+  })
+  );
+
+  //  hozzáadjuk a gyakorlat előzményeket
+  edzes.map((edzess) => {
+  const result  = {
+        ...edzess,
+    gyakorlatok: gyakorlatokWithHistory
+  };
+   return result;
+  })
+  }catch (error) {
+    throw new NotFoundException("vagy nincs ilyen user, vagy ennek a usernek nincs ilyen dátumu edzése")
+  }
+    
+}
+
 }
