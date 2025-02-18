@@ -15,7 +15,7 @@ async function main() {
                     email: 'admin@gmail.com',
                     username: 'Admin',
                     password: await hash('Admin123.',10),
-                    admin: true
+                    //admin: true
                 },
                 {
                     email: 'user@gmail.com',
