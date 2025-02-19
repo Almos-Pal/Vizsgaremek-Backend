@@ -7,6 +7,7 @@ import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
 import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { PaginationHelper } from '../common/helpers/pagination.helper';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
+import { isDate, isNumber } from 'class-validator';
 
 @Injectable()
 export class EdzesService {
@@ -788,6 +789,13 @@ export class EdzesService {
   }
   async findOneByDate(user_Id:number,date: string) {
     try{
+      if ( !isNumber(user_Id)) {
+        throw new BadRequestException("Hibás a user_id formátuma" );
+      }
+      if(!isDate(date)){
+        throw new BadRequestException("Hibás a dátum formátuma" );
+      }
+
     const edzes = await this.db.edzes.findMany({
       where: {datum: new Date(date),AND:{user_id:user_Id}},
       include: {
@@ -842,7 +850,7 @@ export class EdzesService {
      return result[0];
 
     }catch (error) {
-      throw new NotFoundException("vagy nincs ilyen user, vagy ennek a usernek nincs ilyen dátumu edzése")
+      throw new NotFoundException(error.message);
     }
       
  }
