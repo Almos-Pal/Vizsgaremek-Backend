@@ -9,6 +9,7 @@ import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
 import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
 import { EdzesekResponseDto } from './dto/edzesek-response.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @ApiTags('Edzes')
 @Controller('edzes')
@@ -22,13 +23,13 @@ export class EdzesController {
     description: 'Lekér egy edzést a user azonosítója és az edzés dátuma alapján a gyakorlatokkal és izomcsoportokkal együtt'
   })
   @ApiQuery({
-    name: 'userId',
-    description: 'A felhasználó azonosítója',
+    name: 'startDate',
+    description: 'A kezdő dátum',
     required: true,
     type: 'number'
   })
   @ApiQuery({
-    name: 'date',
+    name: 'endDate',
     description: 'Az edzés dátuma',
     required: true,
     type: 'string'})
@@ -41,9 +42,9 @@ export class EdzesController {
     status: 404, 
     description: 'Az edzés nem található' 
   })
-  findManyByDate(@Query('userId') userId:number, @Query('startDate') startDate:string,@Query('startDate') endDate:string) {
+  findManyByDate(@Query()query:GetEdzesekQueryDto, @Query('startDate') startDate?:string,@Query('endDate') endDate?:string,@Query("type")type?:string) {
 
-    return this.edzesService.findManyByDate(userId,startDate,endDate);
+    return this.edzesService.findManyByDate(startDate,endDate,query,type);
   }
   
 

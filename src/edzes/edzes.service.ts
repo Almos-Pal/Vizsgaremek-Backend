@@ -7,6 +7,8 @@ import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
 import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { PaginationHelper } from '../common/helpers/pagination.helper';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
+import { isDate } from 'class-validator';
+import { error } from 'console';
 
 @Injectable()
 export class EdzesService {
@@ -782,81 +784,116 @@ export class EdzesService {
     
   }
   
- async findManyByDate(user_Id:number,startDate: string, endDate: string) {
-  try{
-    console.log(startDate+" "+new Date(startDate))  
-  const edzes = await this.db.edzes.findMany({
-    where: {
-      AND:[
-        {
-          datum: {
-            gte: new Date(startDate),
-            lte: new Date(endDate)
-          },
+ async findManyByDate(startDate: string, endDate: string, query: GetEdzesekQueryDto, type: string) {
+  
+
+    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
+    let where = {};
+
+     
+  if (type === undefined || type === "") {
+    try{  
+      if( !isDate(new Date(startDate)) || !isDate(new Date(endDate)))
+       throw error();
+     }
+     catch(error){
+       throw new BadRequestException("Hibás Dátum formátum, vagy nincs megadva dátum");
+     }
+      where = {AND:{
+       ...(user_id ? { user_id } : {}),
+       datum: {
+         gte: new Date(startDate),
+         lte: new Date(endDate)
+       }
+     } 
+     };
+  }
+  else{
+
+    let now = new Date();
+    let date = 0;
+
+    if(type === "week"){
+      date = 8 ;
+    }else if(type === "month"){
+      date = 31;
+    }else if(type === "halfyear"){
+      date = 181;
+    }
+
+    if(date === 0){
+      where = {
+        ...(user_id ? { user_id } : {}),
+      };
+    }
+    else{
+      where = {AND:{
+        ...(user_id ? { user_id } : {}),
+        datum: {
+          gte:  new Date(now.getTime()-(date*24*60*60*1000)),
+          lte: now
         },
-          {
-            user_id:user_Id
-          }
-      ]
-    },     
-    include: {
-      gyakorlatok: {
+      } 
+    };
+  }
+
+  }
+   
+    const [edzesek, total] = await Promise.all([
+      this.db.edzes.findMany({
+        where,
+        skip,
+        take,
         include: {
-          gyakorlat: {
+          gyakorlatok: {
             include: {
-              izomcsoportok: {
+              gyakorlat: {
                 include: {
-                  izomcsoport: true
+                  izomcsoportok: {
+                    include: {
+                      izomcsoport: true
+                    }
+                  }
+                }
+              },
+              szettek: {
+                orderBy: {
+                  set_szam: 'asc'
                 }
               }
             }
-          },
-          szettek: {
-            orderBy: {
-              set_szam: 'asc'
-            }
           }
+        },
+        orderBy: {
+          datum: 'desc'
         }
-      }
-    }
-  });
-  if (!edzes) {
-    throw new NotFoundException(`Az edzés (ID: ${startDate}) nem található.`);
-  }    
+      }),
+      this.db.edzes.count({ where })
+    ]);
 
-  // Get history for each gyakorlat from the latest history date
-  const gyakorlatokWithHistory = await Promise.all(
-    edzes.map(async (edzess) => {
-      edzess.gyakorlatok.map(async (gyakorlatConn) => {
-      const total_sets = gyakorlatConn.szettek.length;
-      
-      // Get all gyakorlat history entries from the latest history's date
-      const history = await this.getLatestGyakorlatHistory(
-        gyakorlatConn.gyakorlat_id,
-        edzess.datum
-      );
+    // Csak a szettek kiiratása adatok nélkül
+    const enrichedEdzesek = edzesek.map((edzes) => {
+      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
+        const total_sets = gyakorlatConn.szettek.length;
+        return {
+          ...gyakorlatConn,
+          total_sets
+        };
+      });
 
       return {
-        ...gyakorlatConn,
-        total_sets,
-        previous_history: history
+        ...edzes,
+        gyakorlatok: gyakorlatokWithTotals
       };
-    })
-  })
-  );
+    });
 
-  //  hozzáadjuk a gyakorlat előzményeket
-  edzes.map((edzess) => {
-  const result  = {
-        ...edzess,
-    gyakorlatok: gyakorlatokWithHistory
-  };
-   return result;
-  })
-  }catch (error) {
-    throw new NotFoundException("vagy nincs ilyen user, vagy ennek a usernek nincs ilyen dátumu edzése")
+    // Kiszűrjük a user adatokat
+    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
+
+    return {
+      items,
+      meta: PaginationHelper.createMeta(page, limit, total)
+    };
   }
-    
-}
 
 }
