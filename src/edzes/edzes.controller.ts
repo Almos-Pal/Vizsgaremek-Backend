@@ -241,6 +241,37 @@ export class EdzesController {
   getEdzesIzomcsoportok(@Query('user_id') userId: number) {
     return this.edzesService.getEdzesIzomcsoportok( userId );
   }
+  
+  @Get('napi')
+  @ApiOperation({ 
+    summary: 'Egy user adott napi edzésének részletes adatai',
+    description: 'Lekér egy edzést a user azonosítója és az edzés dátuma alapján a gyakorlatokkal és izomcsoportokkal együtt'
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    required: true,
+    type: 'number'
+  })
+  @ApiQuery({
+    name: 'date',
+    description: 'Az edzés dátuma',
+    required: true,
+    type: 'string'})
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Az edzés sikeresen lekérve',
+    type: Edzes
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Az edzés nem található' 
+  })
+  findOneByDate(@Query('userId') userId:number, @Query('date') date:string) {
+
+    return this.edzesService.findOneByDate(userId,date);
+  }
+  
 
   @Get(':id')
   @ApiOperation({ 

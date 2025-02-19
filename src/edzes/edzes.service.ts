@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -7,6 +7,7 @@ import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
 import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { PaginationHelper } from '../common/helpers/pagination.helper';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
+import { isDate, isNumber } from 'class-validator';
 
 @Injectable()
 export class EdzesService {
@@ -521,6 +522,7 @@ export class EdzesService {
   }
 
   async findOne(id: number) {
+    
     const edzes = await this.db.edzes.findUnique({
       where: { edzes_id: id },
       include: {
@@ -781,4 +783,96 @@ export class EdzesService {
     }
     
   }
+
+async findOneByDate(user_Id: number, date: string) {
+  try {
+    if (!isNumber(user_Id)) {
+      throw new BadRequestException("Hibás a user_id formátuma");
+    }
+    if (!isDate(new Date(date))) {
+      throw new BadRequestException("Hibás a dátum formátuma");
+    }
+
+    const givenDate = new Date(date);
+    const startDate = startOfDay(givenDate);
+    const endDate = endOfDay(givenDate);
+
+    const edzes = await this.db.edzes.findMany({
+      where: {
+        user_id: user_Id,
+        datum: {
+          gte: startDate, 
+          lt: endDate, 
+        },
+      },
+      include: {
+        gyakorlatok: {
+          include: {
+            gyakorlat: {
+              include: {
+                izomcsoportok: {
+                  include: {
+                    izomcsoport: true,
+                  },
+                },
+              },
+            },
+            szettek: {
+              orderBy: {
+                set_szam: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (edzes.length === 0) {
+      throw new NotFoundException(`Az edzés (Dátum: ${date}) nem található.`);
+    }
+
+    const gyakorlatokWithHistory = await Promise.all(
+      edzes[0].gyakorlatok.map(async (gyakorlatConn) => {
+        const total_sets = gyakorlatConn.szettek.length;
+
+        const history = await this.getLatestGyakorlatHistory(
+          gyakorlatConn.gyakorlat_id,
+          edzes[0].datum
+        );
+
+        return {
+          ...gyakorlatConn,
+          total_sets,
+          previous_history: history,
+        };
+      })
+    );
+
+    return {
+      ...edzes[0],
+      gyakorlatok: gyakorlatokWithHistory,
+    };
+  } catch (error) {
+    console.error(error); 
+
+    if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      throw error; 
+    }
+
+    throw new InternalServerErrorException("Hiba történt az edzés lekérdezésekor.");
+  }
 }
+
+}
+function startOfDay(givenDate: Date): Date {
+  const start = new Date(givenDate);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function endOfDay(givenDate: Date): Date {
+  const end = new Date(givenDate);
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+
