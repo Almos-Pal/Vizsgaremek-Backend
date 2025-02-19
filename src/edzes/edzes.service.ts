@@ -7,6 +7,7 @@ import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
 import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { PaginationHelper } from '../common/helpers/pagination.helper';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
+import { error } from 'console';
 import { isDate, isNumber } from 'class-validator';
 
 @Injectable()
@@ -783,6 +784,127 @@ export class EdzesService {
     }
     
   }
+  
+ async findManyByDate(startDate: string, endDate: string, query: GetEdzesekQueryDto,type: "week"|"month"|"halfyear"|"all") {
+  
+
+    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
+    let where = {};
+
+     
+  if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")){ 
+    try{  
+      if( !isDate(new Date(startDate)))
+       throw error();
+     }
+     catch(error){
+      throw new BadRequestException("Hibás vagy nincs megadva az startDate");
+    }
+     try{
+      if( !isDate(new Date(endDate))){
+        throw error();
+      }
+      
+     }
+     catch(error){
+      throw new BadRequestException("Hibás vagy nincs megadva az endDate");
+    }
+      where = {AND:{
+       ...(user_id ? { user_id } : {}),
+       datum: {
+         gte: new Date(startDate),
+         lte: new Date(endDate)
+       }
+     } 
+     };
+  }
+  else{
+
+    let now = new Date();
+    let date = 0;
+
+    if(type === "week"){
+      date = 7 ;
+    }else if(type === "month"){
+      date = 30;
+    }else if(type === "halfyear"){
+      date = 180;
+    }
+    if(type === "all"){
+      where = {
+        ...(user_id ? { user_id } : {}),
+      };
+    }
+    else{
+      where = {AND:{
+        ...(user_id ? { user_id } : {}),
+        datum: {
+          gte:  new Date(now.getTime()-(date*24*60*60*1000)),
+          lte: now
+        },
+      } 
+    };
+  }
+
+  }
+   
+    const [edzesek, total] = await Promise.all([
+      this.db.edzes.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: {
+                include: {
+                  izomcsoportok: {
+                    include: {
+                      izomcsoport: true
+                    }
+                  }
+                }
+              },
+              szettek: {
+                orderBy: {
+                  set_szam: 'asc'
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          datum: 'desc'
+        }
+      }),
+      this.db.edzes.count({ where })
+    ]);
+
+    // Csak a szettek kiiratása adatok nélkül
+    const enrichedEdzesek = edzesek.map((edzes) => {
+      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
+        const total_sets = gyakorlatConn.szettek.length;
+        return {
+          ...gyakorlatConn,
+          total_sets
+        };
+      });
+
+      return {
+        ...edzes,
+        gyakorlatok: gyakorlatokWithTotals
+      };
+    });
+
+    // Kiszűrjük a user adatokat
+    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
+
+    return {
+      items,
+      meta: PaginationHelper.createMeta(page, limit, total)
+    };
+  }
+
 
 async findOneByDate(user_Id: number, date: string) {
   try {

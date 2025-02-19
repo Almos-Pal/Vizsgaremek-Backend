@@ -9,11 +9,50 @@ import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
 import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
 import { EdzesekResponseDto } from './dto/edzesek-response.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @ApiTags('Edzes')
 @Controller('edzes')
 export class EdzesController {
   constructor(private readonly edzesService: EdzesService) {}
+
+
+  @Get('intervallum')
+  @ApiOperation({ 
+    summary: 'Egy user adott intervallumon belüli edzései',
+    description: 'Lekér egy intervallumban lévő edzéseket a user azonosítója és, egy kezdő és végző dátumon, vagy kiválasztott típus intervallumon belül, a gyakorlatokkal és izomcsoportokkal együtt'
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'A kezdő dátum',
+    required: false,
+    type: 'string'
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'Az végző dátuma',
+    required: false,
+    type: 'string'})
+    @ApiQuery({
+      name: 'type',
+      description: 'típus megadás, hogy milyen időintervallumot szeretnénk lekérni',
+      required: false,
+      type: "week|month|halfyear|all"})
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Az edzések sikeresen lekérve',
+    type: Edzes
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Az edzések nem találhatóak' 
+  })
+  findManyByDate(@Query()query:GetEdzesekQueryDto, @Query('startDate') startDate?:string,@Query('endDate') endDate?:string,@Query("type")type?:"week"|"month"|"halfyear"|"all") {
+
+    return this.edzesService.findManyByDate(startDate,endDate,query,type);
+  }
+  
+
 
   @Post()
   @ApiOperation({ 
@@ -233,6 +272,8 @@ export class EdzesController {
       }
     }
   })
+
+
 
   @ApiResponse({
     status: 400,
