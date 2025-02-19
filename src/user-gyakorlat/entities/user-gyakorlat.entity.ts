@@ -5,13 +5,13 @@ export class UserGyakorlat {
     description: 'A felhasználó azonosítója',
     example: 1
   })
-  user_id: number;
+  user_id?: number;
 
   @ApiProperty({
     description: 'A gyakorlat azonosítója',
     example: 1
   })
-  gyakorlat_id: number;
+  gyakorlat_id?: number;
 
   @ApiProperty({
     description: 'Személyes rekord súly',
@@ -38,7 +38,7 @@ export class UserGyakorlat {
     description: 'Összes elvégzett szett',
     example: 50
   })
-  total_sets: number;
+  total_sets?: number;
 
   @ApiProperty({
     description: 'A gyakorlat adatai',
