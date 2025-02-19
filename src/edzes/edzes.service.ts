@@ -784,21 +784,30 @@ export class EdzesService {
     
   }
   
- async findManyByDate(startDate: string, endDate: string, query: GetEdzesekQueryDto, type: string) {
+ async findManyByDate(startDate: string, endDate: string, query: GetEdzesekQueryDto,type: "week"|"month"|"halfyear"|"all") {
   
 
     const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
     let where = {};
 
      
-  if (type === undefined || type === "") {
+  if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")){ 
     try{  
-      if( !isDate(new Date(startDate)) || !isDate(new Date(endDate)))
+      if( !isDate(new Date(startDate)))
        throw error();
      }
      catch(error){
-       throw new BadRequestException("Hibás Dátum formátum, vagy nincs megadva dátum");
+      throw new BadRequestException("Hibás vagy nincs megadva az startDate");
+    }
+     try{
+      if( !isDate(new Date(endDate))){
+        throw error();
+      }
+      
      }
+     catch(error){
+      throw new BadRequestException("Hibás vagy nincs megadva az endDate");
+    }
       where = {AND:{
        ...(user_id ? { user_id } : {}),
        datum: {
@@ -814,14 +823,13 @@ export class EdzesService {
     let date = 0;
 
     if(type === "week"){
-      date = 8 ;
+      date = 7 ;
     }else if(type === "month"){
-      date = 31;
+      date = 30;
     }else if(type === "halfyear"){
-      date = 181;
+      date = 180;
     }
-
-    if(date === 0){
+    if(type === "all"){
       where = {
         ...(user_id ? { user_id } : {}),
       };

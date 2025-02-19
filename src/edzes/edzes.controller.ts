@@ -17,32 +17,37 @@ export class EdzesController {
   constructor(private readonly edzesService: EdzesService) {}
 
 
-  @Get('heti')
+  @Get('intervallum')
   @ApiOperation({ 
-    summary: 'Egy user adott napi edzésének részletes adatai',
-    description: 'Lekér egy edzést a user azonosítója és az edzés dátuma alapján a gyakorlatokkal és izomcsoportokkal együtt'
+    summary: 'Egy user adott intervallumon belüli edzései',
+    description: 'Lekér egy intervallumban lévő edzéseket a user azonosítója és, egy kezdő és végző dátumon, vagy kiválasztott típus intervallumon belül, a gyakorlatokkal és izomcsoportokkal együtt'
   })
   @ApiQuery({
     name: 'startDate',
     description: 'A kezdő dátum',
-    required: true,
-    type: 'number'
+    required: false,
+    type: 'string'
   })
   @ApiQuery({
     name: 'endDate',
-    description: 'Az edzés dátuma',
-    required: true,
+    description: 'Az végző dátuma',
+    required: false,
     type: 'string'})
+    @ApiQuery({
+      name: 'type',
+      description: 'típus megadás, hogy milyen időintervallumot szeretnénk lekérni',
+      required: false,
+      type: "week|month|halfyear|all"})
   @ApiResponse({ 
     status: 200, 
-    description: 'Az edzés sikeresen lekérve',
+    description: 'Az edzések sikeresen lekérve',
     type: Edzes
   })
   @ApiResponse({ 
     status: 404, 
-    description: 'Az edzés nem található' 
+    description: 'Az edzések nem találhatóak' 
   })
-  findManyByDate(@Query()query:GetEdzesekQueryDto, @Query('startDate') startDate?:string,@Query('endDate') endDate?:string,@Query("type")type?:string) {
+  findManyByDate(@Query()query:GetEdzesekQueryDto, @Query('startDate') startDate?:string,@Query('endDate') endDate?:string,@Query("type")type?:"week"|"month"|"halfyear"|"all") {
 
     return this.edzesService.findManyByDate(startDate,endDate,query,type);
   }
