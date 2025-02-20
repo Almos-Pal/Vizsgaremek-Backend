@@ -566,7 +566,8 @@ export class EdzesService {
         return {
           ...gyakorlatConn,
           total_sets,
-          previous_history: history
+          previous_history: history,
+          isFinalized: edzes.isFinalized
         };
       })
     );
@@ -842,5 +843,37 @@ export class EdzesService {
       throw new BadRequestException('Hiba történt a gyakorlat eltávolítása közben: ' + error.message);
     }
 
+  }
+
+  async changeEdzesFinalizedStatus(edzesId: number, userId: number, finalized: boolean) {
+    try {
+      const edzes = await this.db.edzes.findUnique({
+        where: {
+          edzes_id: edzesId,
+          user_id: userId
+        }
+      });
+
+      if (!edzes) {
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
+      }
+
+      const updatedEdzes = await this.db.edzes.update({
+        where: { edzes_id: edzesId },
+        data: {
+          isFinalized: finalized
+        }
+      });
+
+      // Kiszűrjük a user adatokat
+      const { user_id, ...result } = updatedEdzes;
+      return result;
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Hiba történt az edzés állapotának módosítása során: ' + error.message);
+    }
   }
 }

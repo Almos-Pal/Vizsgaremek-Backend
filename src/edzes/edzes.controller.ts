@@ -340,4 +340,42 @@ export class EdzesController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.remove(id);
   }
+
+
+
+  @Patch(':id/finalize/:userId')
+  @ApiOperation({
+    summary: 'Edzés véglegesítésének állapotának módosítása',
+    description: 'Módosítja az edzés véglegesítésének állapotát a megadott azonosító alapján'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Az edzés azonosítója',
+    type: 'number'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Az edzés véglegesítésének állapota sikeresen módosítva',
+    type: Edzes
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés nem található vagy nem tartozik a megadott felhasználóhoz'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Hiba történt az edzés állapotának módosítása során'
+  })
+  changeEdzesFinalizedStatus(
+    @Param('id', ParseIntPipe) edzesId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body('finalized') finalized: boolean
+  ) {
+    return this.edzesService.changeEdzesFinalizedStatus(edzesId, userId, finalized);
+  }
 }
