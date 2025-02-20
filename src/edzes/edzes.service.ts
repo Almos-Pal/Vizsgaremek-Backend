@@ -613,9 +613,6 @@ export class EdzesService {
   }
 
   async deleteGyakorlatFromEdzes(edzesId: number, gyakorlatId: number, userId: number) {
-
-
-
     try {
       const edzes = await this.db.edzes.findUnique({ where: { edzes_id: edzesId } });
 
@@ -637,36 +634,37 @@ export class EdzesService {
         throw new NotFoundException(`A gyakorlat (ID: ${gyakorlatId}) nem található az edzésben (ID: ${edzesId}).`);
       }
 
-      // Töröljük az edzés-gyakorlat kapcsolatot
-      await this.db.edzes_Gyakorlat.delete({
-        where: {
-          edzes_id_gyakorlat_id: {
-            edzes_id: edzesId,
-            gyakorlat_id: gyakorlatId
+      await this.db.$transaction(async (prisma) => {
+        // Töröljük a szetteket
+        await prisma.edzes_Gyakorlat_Set.deleteMany({
+          where: {
+            edzes_gyakorlat: {
+              edzes_id: edzesId,
+              gyakorlat_id: gyakorlatId
+            }
           }
-        }
-      });
+        });
 
-      // Töröljük a history bejegyzéseket
-      await this.db.user_Gyakorlat_History.deleteMany({
-        where: {
-          user_id: userId,
-          gyakorlat_id: gyakorlatId
-        }
-      });
-
-      // töröljük a szetteket
-      await this.db.edzes_Gyakorlat_Set.deleteMany({
-        where: {
-          edzes_gyakorlat: {
-            edzes_id: edzesId,
-            gyakorlat_id: gyakorlatId
+        // Töröljük az edzés-gyakorlat kapcsolatot
+        await prisma.edzes_Gyakorlat.delete({
+          where: {
+            edzes_id_gyakorlat_id: {
+              edzes_id: edzesId,
+              gyakorlat_id: gyakorlatId
+            }
           }
-        }
+        });
+
+        // Töröljük a history bejegyzéseket
+        // await prisma.user_Gyakorlat_History.deleteMany({
+        //   where: {
+        //     user_id: userId,
+        //     gyakorlat_id: gyakorlatId
+        //   }
+        // });
       });
 
       return { message: "Gyakorlat sikeresen törölve az edzésből" };
-
     } catch (error) {
       throw new BadRequestException('Hiba történt az edzés törlése során: ' + error.message);
     }
