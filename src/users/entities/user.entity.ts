@@ -1,4 +1,5 @@
-import { IsDefined, IsEmail, IsNumber, IsString, IsStrongPassword } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsDefined, IsEmail, IsNumber, IsOptional, IsString, IsStrongPassword } from "class-validator";
 
 export class User {
 
@@ -19,4 +20,25 @@ export class User {
     @IsString()
     @IsStrongPassword()
     password: string;
+
+
+    @ApiProperty(
+        {
+            example: 80,
+            description: 'A felhasználó a súlya'
+        }
+    )
+    @IsNumber()
+    @IsOptional()
+    suly?: number;
+
+    @ApiProperty(
+        {
+            example: 180,
+            description: 'A felhasználó a magassága'
+        }
+    )
+    @IsNumber()
+    @IsOptional()
+    magassag?: number;
 }

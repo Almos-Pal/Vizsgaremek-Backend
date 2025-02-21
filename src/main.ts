@@ -4,7 +4,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
-// import { createFile } from './scripts/uploadApiDocument';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

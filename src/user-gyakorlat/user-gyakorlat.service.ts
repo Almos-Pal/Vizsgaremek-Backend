@@ -184,9 +184,9 @@ export class UserGyakorlatService {
       throw new NotFoundException(new UserGyakorlatNotFoundDto(user_id, gyakorlat_id));
     }
 
-    // Use transaction to ensure all related records are deleted
+    // Tranzakciókat használunk a törléshez
     return this.prisma.$transaction(async (prisma) => {
-      // First delete all history records
+      // először a history adatokat töröljük
       await prisma.user_Gyakorlat_History.deleteMany({
         where: {
           user_id,
@@ -194,7 +194,7 @@ export class UserGyakorlatService {
         }
       });
 
-      // Then delete the user_gyakorlat record
+      // majd a user_gyakorlat adatokat
       return prisma.user_Gyakorlat.delete({
         where: {
           user_id_gyakorlat_id: {

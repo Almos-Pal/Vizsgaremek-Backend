@@ -46,6 +46,12 @@ paths:
             maximum: 100
             default: 10
             type: number
+        - name: user_id
+          required: false
+          in: query
+          description: Filter edzések by user ID
+          schema:
+            type: number
       responses:
         '200':
           description: Az edzések sikeresen lekérve
@@ -225,7 +231,13 @@ paths:
         Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az
         edzésekben
       operationId: getEdzesIzomcsoportok
-      parameters: []
+      parameters:
+        - name: user_id
+          required: true
+          in: query
+          description: A felhasználó azonosítója
+          schema:
+            type: number
       responses:
         '200':
           description: Az izomcsoportok sikeresen lekérve
@@ -244,7 +256,40 @@ paths:
                     items:
                       type: number
                     description: Az összes érintett fő izomcsoport azonosítója
+        '400':
+          description: Hibás kérés - Érvénytelen felhasználó azonosító
       summary: Edzésekben használt izomcsoportok lekérése
+      tags:
+        - Edzes
+  /edzes/napi:
+    get:
+      description: >-
+        Lekér egy edzést a user azonosítója és az edzés dátuma alapján a
+        gyakorlatokkal és izomcsoportokkal együtt
+      operationId: findOneByDate
+      parameters:
+        - name: userId
+          required: true
+          in: query
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+        - name: date
+          required: true
+          in: query
+          description: Az edzés dátuma
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Az edzés sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: Az edzés nem található
+      summary: Egy user adott napi edzésének részletes adatai
       tags:
         - Edzes
   /edzes/{id}:

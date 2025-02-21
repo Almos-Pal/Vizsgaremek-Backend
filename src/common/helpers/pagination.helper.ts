@@ -7,7 +7,6 @@ export class PaginationHelper {
         const skip = (page - 1) * limit;
         const take = limit;
 
-        // Return all query parameters along with pagination options
         return {
             ...query,
             skip,

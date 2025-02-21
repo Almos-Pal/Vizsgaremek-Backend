@@ -8,7 +8,6 @@ export interface IIzomcsoport {
 export interface IGyakorlat {
     gyakorlat_id: number;
     gyakorlat_neve: string;
-    // personal_best?: number;
     eszkoz?: string;
     gyakorlat_leiras?: string;
     fo_izomcsoport?: number;
@@ -29,12 +28,6 @@ export class Gyakorlat implements IGyakorlat {
     })
     gyakorlat_neve: string;
 
-    // @ApiProperty({
-    //     example: 100.5,
-    //     description: 'Személyes legjobb súly/rekord',
-    //     required: false
-    // })
-    // personal_best?: number;
 
     @ApiProperty({
         example: 'Barbell',
