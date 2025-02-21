@@ -120,17 +120,23 @@ export class UserGyakorlatService {
     if (isRecord) {
       const items = await this.prisma.user_Gyakorlat.findMany({
         where: { user_id },
+        skip,
+        take,
         select: {
           personal_best: true,
           gyakorlat: {
             select: {
-              gyakorlat_neve: true
+              gyakorlat_neve: true,
+              fo_izomcsoport: true,
+              izomcsoportok: {
+                select: {
+                  izomcsoport_id: true,
+              },
             }
           }
-        },
-        skip,
-        take
-      });
+        }
+      }
+    });
   
       const total = await this.prisma.user_Gyakorlat.count({ where: { user_id } });
   
