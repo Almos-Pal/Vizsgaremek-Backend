@@ -19,6 +19,13 @@ export class GetUserGyakorlatokQueryDto {
         maximum: 100
     })
     limit?: number = 10;
+
+    @ApiProperty({
+        description: " Ez a tulajdonság arra szolgál, hogy meghatározza, a rekord boolean értékként",
+        required: false,
+        default: false
+    })
+    isRecord?: boolean;
 }
 
 export class UserGyakorlatokResponseDto implements PaginatedResponseDto<UserGyakorlat> {
@@ -27,7 +34,7 @@ export class UserGyakorlatokResponseDto implements PaginatedResponseDto<UserGyak
         type: () => [UserGyakorlat],
         isArray: true
     })
-    items: UserGyakorlat[];
+    items: UserGyakorlat[] ;
 
     @ApiProperty({
         description: 'Lapozási metaadatok',

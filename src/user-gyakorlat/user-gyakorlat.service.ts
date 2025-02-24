@@ -115,24 +115,56 @@ export class UserGyakorlatService {
 
   async getUserGyakorlatok(user_id: number, query: GetUserGyakorlatokQueryDto): Promise<UserGyakorlatokResponseDto> {
     const { skip, take, page, limit } = PaginationHelper.getPaginationOptions(query);
+    const { isRecord } = query;
 
-    const [items, total] = await Promise.all([
-      this.prisma.user_Gyakorlat.findMany({
+    if (isRecord) {
+      const items = await this.prisma.user_Gyakorlat.findMany({
         where: { user_id },
         skip,
         take,
-        include: {
-          gyakorlat: true,
-          history: {
-            orderBy: {
-              date: 'desc'
-            },
-            take: 10 // Utolsó 10 bejegyzés
+        select: {
+          personal_best: true,
+          gyakorlat: {
+            select: {
+              gyakorlat_neve: true,
+              fo_izomcsoport: true,
+              izomcsoportok: {
+                select: {
+                  izomcsoport_id: true,
+              },
+            }
           }
         }
+      }
+    });
+  
+      const total = await this.prisma.user_Gyakorlat.count({ where: { user_id } });
+  
+      return {
+        items,
+        meta: PaginationHelper.createMeta(page, limit, total)
+      };
+    }
+  
+    
+
+    const [items, total] = await Promise.all([
+      this.prisma.user_Gyakorlat.findMany({
+      where: { user_id },
+      skip,
+      take,
+      include: {
+        gyakorlat: true,
+        history: {
+        orderBy: {
+          date: 'desc'
+        },
+        take: 10 // Utolsó 10 bejegyzés
+        }
+      }
       }),
       this.prisma.user_Gyakorlat.count({
-        where: { user_id }
+      where: { user_id }
       })
     ]);
 
