@@ -48,8 +48,10 @@ parse(fileContent, {
 
 async function main() {
     try {
+        
         await prisma.gyakorlat_Izomcsoport.deleteMany();
         await prisma.gyakorlat.deleteMany();
+        
         for (const line of data) {
             console.log(line.secondaryMuscle.substring(1,line.secondaryMuscle.length-1).split(';').map(Number));
             try {
