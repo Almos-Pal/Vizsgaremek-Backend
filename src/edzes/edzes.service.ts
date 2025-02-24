@@ -291,7 +291,6 @@ export class EdzesService {
       });
 
       if (!edzes) {
-
         throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
       }
 
@@ -310,55 +309,105 @@ export class EdzesService {
         throw new NotFoundException(`A megadott szett (setID: ${setId}) nem található az edzésben (edzesID: ${edzesId}) a gyakorlatnál (gyakorlatID: ${gyakorlatId}).`);
       }
 
-      // Csak a súlyt és az ismétlésszámot lehet módosítani
-      const updatedSet = await this.db.edzes_Gyakorlat_Set.update({
-        where: { id: setId },
-        data: {
-          weight: updateDto.weight,
-          reps: updateDto.reps
-          // set_szam nem módosítható
+      // Find the existing history record for this set
+      const existingHistory = await this.db.user_Gyakorlat_History.findFirst({
+        where: {
+          user_id: userId,
+          gyakorlat_id: gyakorlatId,
+          date: edzes.datum,
+          weight: set.weight,
+          reps: set.reps
         }
       });
 
-      // Frissítjük a history bejegyzést is
-      await this.db.user_Gyakorlat_History.create({
-        data: {
-          user_gyakorlat: {
-            connect: {
+      // Update the set and history in a transaction
+      const result = await this.db.$transaction(async (prisma) => {
+        // Update the set
+        const updatedSet = await prisma.edzes_Gyakorlat_Set.update({
+          where: { id: setId },
+          data: {
+            weight: updateDto.weight,
+            reps: updateDto.reps
+          }
+        });
+
+        // Update or create history record
+        if (existingHistory) {
+          await prisma.user_Gyakorlat_History.update({
+            where: { id: existingHistory.id },
+            data: {
+              weight: updateDto.weight,
+              reps: updateDto.reps
+            }
+          });
+        } else {
+          await prisma.user_Gyakorlat_History.create({
+            data: {
+              user_gyakorlat: {
+                connect: {
+                  user_id_gyakorlat_id: {
+                    user_id: userId,
+                    gyakorlat_id: gyakorlatId
+                  }
+                }
+              },
+              weight: updateDto.weight,
+              reps: updateDto.reps,
+              date: edzes.datum
+            }
+          });
+        }
+
+        // Update user_gyakorlat stats
+        const userGyakorlat = await prisma.user_Gyakorlat.findUnique({
+          where: {
+            user_id_gyakorlat_id: {
+              user_id: userId,
+              gyakorlat_id: gyakorlatId
+            }
+          }
+        });
+
+        if (userGyakorlat) {
+          await prisma.user_Gyakorlat.update({
+            where: {
               user_id_gyakorlat_id: {
                 user_id: userId,
                 gyakorlat_id: gyakorlatId
               }
+            },
+            data: {
+              last_weight: updateDto.weight,
+              last_reps: updateDto.reps,
+              personal_best: userGyakorlat.personal_best > updateDto.weight ?
+                userGyakorlat.personal_best : updateDto.weight
             }
-          },
-          weight: updateDto.weight,
-          reps: updateDto.reps
+          });
         }
-      });
 
-      // Lekérjük a frissített edzést
-      const updatedEdzes = await this.db.edzes.findUnique({
-        where: { edzes_id: edzesId },
-        include: {
-          gyakorlatok: {
-            include: {
-              gyakorlat: true,
-              szettek: true
+        // Return updated edzes
+        return prisma.edzes.findUnique({
+          where: { edzes_id: edzesId },
+          include: {
+            gyakorlatok: {
+              include: {
+                gyakorlat: true,
+                szettek: true
+              }
             }
           }
-        }
+        });
       });
 
       // Kiszűrjük a user adatokat
-      const { user_id, ...result } = updatedEdzes;
-      return result;
+      const { user_id, ...finalResult } = result;
+      return finalResult;
 
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException('Hiba történt a szett frissítése során: ' + error.message);
-
     }
   }
 
