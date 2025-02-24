@@ -8,7 +8,7 @@ import getBmiCategory from 'src/common/helpers/bmi';
 @Injectable()
 export class UsersService {
   constructor(private readonly db: PrismaService) {}
-
+  
   async create(createUserDto: CreateUserDto) {
     try {
       const existingUser = await this.findByEmail(createUserDto.email)

@@ -21,7 +21,8 @@ export class AuthService {
         const payload = {
             email: user.email,
             sub: {
-                username: user.username
+                username: user.username,
+                admin: user.isAdmin
             }
         }
 
@@ -46,9 +47,8 @@ export class AuthService {
     async validateUser(loginDto: LoginDto) {
         const user = await this.usersService.findByEmail(loginDto.email);
 
-
         if (user && (await compare(loginDto.password, user.password))) {
-            const { password, ...result } = user;
+            const { password,  ...result } = user;
             return result;
         }
 

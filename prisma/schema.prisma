@@ -18,6 +18,7 @@ model User {
   gyakorlatok      User_Gyakorlat[]   // Connection to exercises with personal data
   edzestervek      Edzesterv[]
   edzesek          Edzes[]
+  isAdmin         Boolean           @default(false)    
   suly Int?
   magassag Int?
 
