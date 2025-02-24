@@ -27,8 +27,14 @@ export class EdzesController {
     required: true,
     type: 'number'
   })
-      findTen(@Query('userId') userId: number) {
-    return this.edzesService.findTen(userId);
+  @ApiQuery({
+    name: 'gyakorlat',
+    description: 'A gyakorlat neve',
+    required: true,
+    type: 'string'
+  })
+      findTen(@Query('userId') userId: number,@Query('gyakorlat') gyakorlat: string) {
+    return this.edzesService.findTen(userId,gyakorlat);
   }
 
   @Get('intervallum')

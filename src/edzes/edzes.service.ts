@@ -985,7 +985,7 @@ async findOneByDate(user_Id: number, date: string) {
   }
 }
 
-async findTen(user_Id:number){
+async findTen(user_Id:number,gyakorlat_neve:string){
   try {
     if (!isNumber(user_Id)) {
       throw new BadRequestException("Hibás a user_id formátuma");
@@ -994,11 +994,18 @@ async findTen(user_Id:number){
     const edzesek = await this.db.edzes.findMany({
       where: {
         user_id: user_Id,
+        gyakorlatok:{
+          some:{
+            gyakorlat:{
+              gyakorlat_neve:gyakorlat_neve
+            }
+          }
+        }
       },
       include: {
         gyakorlatok: {
           include: {
-            gyakorlat: {
+            gyakorlat: {              
               include: {
                 izomcsoportok: {
                   include: {
