@@ -1050,9 +1050,8 @@ async findTen(user_Id:number,gyakorlat_neve:string){
     const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
 
 
-    return {
-      items,
-    };
+    return items;
+
   } catch (error) {
     console.error(error); 
 
