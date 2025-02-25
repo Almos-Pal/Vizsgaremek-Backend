@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } fro
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @Controller('users')
 export class UsersController {
@@ -13,7 +14,7 @@ export class UsersController {
   }
 
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, AdminGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
