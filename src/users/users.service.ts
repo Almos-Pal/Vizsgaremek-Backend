@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -7,8 +7,8 @@ import getBmiCategory from 'src/common/helpers/bmi';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly db: PrismaService) {}
-  
+  constructor(private readonly db: PrismaService) { }
+
   async create(createUserDto: CreateUserDto) {
     try {
       const existingUser = await this.findByEmail(createUserDto.email)
@@ -48,10 +48,11 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    
     try {
-      const user = await this.db.user.update({ 
-        where: { user_id: id }, 
-        data: updateUserDto 
+      const user = await this.db.user.update({
+        where: { user_id: id },
+        data: updateUserDto,
       });
       return user;
     } catch (error) {
@@ -131,37 +132,37 @@ export class UsersService {
   }
 
   async getBMI(id: number) {
-    try{
+    try {
       const user = await this.db.user.findUnique({
         where: { user_id: id }
       });
-  
+
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
-      if(user.suly === null || user.magassag === null) {
+      if (user.suly === null || user.magassag === null) {
         throw new BadRequestException('User weight or height is not set');
-      
-      }
-      
 
-      
-      
+      }
+
+
+
+
       const bmi = user.suly / ((user.magassag / 100) ** 2);
 
 
       const type = getBmiCategory(bmi);
-      
-      return { 
+
+      return {
         bmi: bmi.toFixed(2),
         type: type
       };
-    } catch(error) {
+    } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException('Failed to calculate BMI: ' + error.message);
     }
- 
+
   }
 }
