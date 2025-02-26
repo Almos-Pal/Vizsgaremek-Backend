@@ -14,11 +14,11 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 @ApiTags('Edzes')
 @Controller('edzes')
 export class EdzesController {
-  constructor(private readonly edzesService: EdzesService) {}
+  constructor(private readonly edzesService: EdzesService) { }
 
 
   @Get('intervallum')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Egy user adott intervallumon belüli edzései',
     description: 'Lekér egy intervallumban lévő edzéseket a user azonosítója és, egy kezdő és végző dátumon, vagy kiválasztott típus intervallumon belül, a gyakorlatokkal és izomcsoportokkal együtt'
   })
@@ -32,48 +32,50 @@ export class EdzesController {
     name: 'endDate',
     description: 'Az végző dátuma',
     required: false,
-    type: 'string'})
-    @ApiQuery({
-      name: 'type',
-      description: 'típus megadás, hogy milyen időintervallumot szeretnénk lekérni',
-      required: false,
-      type: "week|month|halfyear|all"})
-  @ApiResponse({ 
-    status: 200, 
+    type: 'string'
+  })
+  @ApiQuery({
+    name: 'type',
+    description: 'típus megadás, hogy milyen időintervallumot szeretnénk lekérni',
+    required: false,
+    type: "week|month|halfyear|all"
+  })
+  @ApiResponse({
+    status: 200,
     description: 'Az edzések sikeresen lekérve',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzések nem találhatóak' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzések nem találhatóak'
   })
-  findManyByDate(@Query()query:GetEdzesekQueryDto, @Query('startDate') startDate?:string,@Query('endDate') endDate?:string,@Query("type")type?:"week"|"month"|"halfyear"|"all") {
+  findManyByDate(@Query() query: GetEdzesekQueryDto, @Query('startDate') startDate?: string, @Query('endDate') endDate?: string, @Query("type") type?: "week" | "month" | "halfyear" | "all") {
 
-    return this.edzesService.findManyByDate(startDate,endDate,query,type);
+    return this.edzesService.findManyByDate(startDate, endDate, query, type);
   }
-  
+
 
 
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Új edzés létrehozása',
     description: 'Létrehoz egy új edzést a megadott felhasználóhoz'
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'Az edzés sikeresen létrehozva',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'A felhasználó nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'A felhasználó nem található'
   })
   create(@Body() createEdzesDto: CreateEdzesDto) {
     return this.edzesService.create(createEdzesDto);
   }
 
   @Post(':id/gyakorlat/:userId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Gyakorlat hozzáadása edzéshez',
     description: 'Hozzáad egy gyakorlatot egy meglévő edzéshez és rögzíti a felhasználó történetében'
   })
@@ -87,14 +89,14 @@ export class EdzesController {
     description: 'A felhasználó azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'A gyakorlat sikeresen hozzáadva',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés vagy a gyakorlat nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés vagy a gyakorlat nem található'
   })
   addGyakorlatToEdzes(
     @Param('id', ParseIntPipe) id: number,
@@ -105,7 +107,7 @@ export class EdzesController {
   }
 
   @Post(':id/gyakorlat/:gyakorlatId/set/:userId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Szett hozzáadása gyakorlathoz',
     description: 'Hozzáad egy szettet egy edzés gyakorlatához és rögzíti a felhasználó történetében'
   })
@@ -124,14 +126,14 @@ export class EdzesController {
     description: 'A felhasználó azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'A szett sikeresen hozzáadva',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés, a gyakorlat vagy a felhasználó nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés, a gyakorlat vagy a felhasználó nem található'
   })
   addSetToEdzesGyakorlat(
     @Param('id', ParseIntPipe) id: number,
@@ -143,7 +145,7 @@ export class EdzesController {
   }
 
   @Patch(':id/gyakorlat/:gyakorlatId/set/:setId/:userId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Szett módosítása',
     description: 'Módosítja egy edzés gyakorlatának szettjét'
   })
@@ -167,14 +169,14 @@ export class EdzesController {
     description: 'A felhasználó azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A szett sikeresen módosítva',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés, a gyakorlat vagy a szett nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés, a gyakorlat vagy a szett nem található'
   })
   updateSet(
     @Param('id', ParseIntPipe) id: number,
@@ -187,7 +189,7 @@ export class EdzesController {
   }
 
   @Delete(':id/gyakorlat/:gyakorlatId/set/:setId/:userId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Szett törlése',
     description: 'Törli egy edzés gyakorlatának szettjét'
   })
@@ -211,13 +213,13 @@ export class EdzesController {
     description: 'A felhasználó azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'A szett sikeresen törölve' 
+  @ApiResponse({
+    status: 200,
+    description: 'A szett sikeresen törölve'
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés, a gyakorlat vagy a szett nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés, a gyakorlat vagy a szett nem található'
   })
   removeSet(
     @Param('id', ParseIntPipe) id: number,
@@ -229,12 +231,12 @@ export class EdzesController {
   }
 
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Összes edzés lekérése',
     description: 'Lekéri az összes edzést a hozzájuk tartozó gyakorlatokkal és izomcsoportokkal együtt'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Az edzések sikeresen lekérve',
     type: EdzesekResponseDto
   })
@@ -243,9 +245,9 @@ export class EdzesController {
   }
 
   @Get('izomcsoportok')
-  @ApiOperation({ 
-    summary: 'Edzésekben használt izomcsoportok lekérése', 
-    description: 'Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az edzésekben' 
+  @ApiOperation({
+    summary: 'Edzésekben használt izomcsoportok lekérése',
+    description: 'Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az edzésekben'
   })
   @ApiQuery({
     name: 'user_id',
@@ -253,8 +255,8 @@ export class EdzesController {
     required: true,
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Az izomcsoportok sikeresen lekérve',
     schema: {
       type: 'object',
@@ -280,11 +282,11 @@ export class EdzesController {
     description: 'Hibás kérés - Érvénytelen felhasználó azonosító'
   })
   getEdzesIzomcsoportok(@Query('user_id') userId: number) {
-    return this.edzesService.getEdzesIzomcsoportok( userId );
+    return this.edzesService.getEdzesIzomcsoportok(userId);
   }
-  
+
   @Get('napi')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Egy user adott napi edzésének részletes adatai',
     description: 'Lekér egy edzést a user azonosítója és az edzés dátuma alapján a gyakorlatokkal és izomcsoportokkal együtt'
   })
@@ -298,24 +300,25 @@ export class EdzesController {
     name: 'date',
     description: 'Az edzés dátuma',
     required: true,
-    type: 'string'})
-  @ApiResponse({ 
-    status: 200, 
+    type: 'string'
+  })
+  @ApiResponse({
+    status: 200,
     description: 'Az edzés sikeresen lekérve',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés nem található'
   })
-  findOneByDate(@Query('userId') userId:number, @Query('date') date:string) {
+  findOneByDate(@Query('userId') userId: number, @Query('date') date: string) {
 
-    return this.edzesService.findOneByDate(userId,date);
+    return this.edzesService.findOneByDate(userId, date);
   }
-  
+
 
   @Get(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Egy edzés részletes adatai',
     description: 'Lekér egy edzést az azonosítója alapján a gyakorlatokkal és izomcsoportokkal együtt'
   })
@@ -324,21 +327,21 @@ export class EdzesController {
     description: 'Az edzés azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Az edzés sikeresen lekérve',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés nem található'
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Edzés módosítása',
     description: 'Módosítja az edzés adatait a megadott azonosító alapján'
   })
@@ -347,21 +350,21 @@ export class EdzesController {
     description: 'Az edzés azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Az edzés sikeresen módosítva',
     type: Edzes
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés nem található'
   })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateEdzesDto: UpdateEdzesDto) {
     return this.edzesService.update(id, updateEdzesDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Edzés törlése',
     description: 'Törli az edzést és a hozzá tartozó gyakorlatokat'
   })
@@ -370,13 +373,13 @@ export class EdzesController {
     description: 'Az edzés azonosítója',
     type: 'number'
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Az edzés sikeresen törölve' 
+  @ApiResponse({
+    status: 200,
+    description: 'Az edzés sikeresen törölve'
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Az edzés nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'Az edzés nem található'
   })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.remove(id);
