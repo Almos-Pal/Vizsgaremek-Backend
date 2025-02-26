@@ -985,7 +985,7 @@ async findOneByDate(user_Id: number, date: string) {
   }
 }
 
-async findTen(user_Id:number,gyakorlat_neve:string){
+async findTen(user_Id:number,gyakorlat_id:number){
   try {
     if (!isNumber(user_Id)) {
       throw new BadRequestException("Hibás a user_id formátuma");
@@ -997,7 +997,7 @@ async findTen(user_Id:number,gyakorlat_neve:string){
         gyakorlatok:{
           some:{
             gyakorlat:{
-              gyakorlat_neve:gyakorlat_neve
+              gyakorlat_id:gyakorlat_id
             }
           }
         }

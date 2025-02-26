@@ -29,11 +29,11 @@ export class EdzesController {
   })
   @ApiQuery({
     name: 'gyakorlat',
-    description: 'A gyakorlat neve',
+    description: 'A gyakorlat id-ja',
     required: true,
-    type: 'string'
+    type: 'number'
   })
-      findTen(@Query('userId') userId: number,@Query('gyakorlat') gyakorlat: string) {
+      findTen(@Query('userId') userId: number,@Query('gyakorlat') gyakorlat: number) {
     return this.edzesService.findTen(userId,gyakorlat);
   }
 
