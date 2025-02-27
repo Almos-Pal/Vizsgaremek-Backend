@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsDateString, IsArray, ValidateNested, IsOptional, IsInt } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsDateString, IsArray, ValidateNested, IsOptional, IsInt, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateEdzesSetDto {
@@ -79,4 +79,13 @@ export class CreateEdzesDto {
   @IsNumber()
   @IsOptional()
   ido?: number;
+
+  @ApiProperty({
+    description: 'Igaz ha az edzés befejeződött',
+    example: false,
+    required: false
+  })
+  @IsOptional()
+  @IsBoolean()
+  isFinalized?: boolean;
 }

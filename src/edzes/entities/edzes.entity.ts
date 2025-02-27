@@ -1,4 +1,4 @@
-import { IsDate, IsDefined, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsDate, IsDefined, IsNumber, IsString } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 
 class UserGyakorlatHistory {
@@ -109,6 +109,14 @@ export class Edzes {
     })
     @IsNumber()
     ido: number;
+
+    @ApiProperty({
+        description: 'Igaz ha az edzés befejeződött',
+        example: false,
+    })
+    @IsBoolean()
+    isFinalized?: boolean;
+
 
     @ApiProperty({
         description: 'Az edzéshez tartozó gyakorlatok',

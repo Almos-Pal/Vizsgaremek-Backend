@@ -23,6 +23,6 @@ export class AddEdzesGyakorlatSetDto {
     example: 12
   })
   @IsInt()
-  @Min(1)
+  @Min(0)
   reps: number;
 } 
