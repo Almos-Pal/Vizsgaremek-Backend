@@ -931,9 +931,10 @@ export class EdzesService {
     query: GetEdzesekQueryDto,
     type: "week" | "month" | "halfyear" | "all"
   ) {
-    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id } =
+      PaginationHelper.getPaginationOptions(query);
     let where = {};
-
+  
     if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
       try {
         if (!isDate(new Date(startDate))) throw new Error();
@@ -980,7 +981,7 @@ export class EdzesService {
         };
       }
     }
-
+  
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
         where,
@@ -1012,8 +1013,8 @@ export class EdzesService {
       }),
       this.db.edzes.count({ where })
     ]);
-
-    
+  
+    // Enrich each workout with the total number of sets per exercise.
     const enrichedEdzesek = edzesek.map((edzes) => {
       const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
         const total_sets = gyakorlatConn.szettek.length;
@@ -1027,28 +1028,48 @@ export class EdzesService {
         gyakorlatok: gyakorlatokWithTotals
       };
     });
-
+  
     
     const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
-
+  
     
-    const izomcsoportCounts: Record<number, number> = {};
-
+    const izomcsoportCounts: Record<string, number> = {};
+  
     items.forEach(edzes => {
       edzes.gyakorlatok.forEach(gyakorlatConn => {
         const gyakorlat = gyakorlatConn.gyakorlat;
         if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
           gyakorlat.izomcsoportok.forEach((group) => {
-            const muscleId = group.izomcsoport.izomcsoport_id;
-            izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+            const muscleName = group.izomcsoport.nev;
+            izomcsoportCounts[muscleName] = (izomcsoportCounts[muscleName] || 0) + 1;
           });
         } else if (gyakorlat.fo_izomcsoport) {
-          const muscleId = gyakorlat.fo_izomcsoport;
-          izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+         
+          const muscleName = `Muscle ${gyakorlat.fo_izomcsoport}`;
+          izomcsoportCounts[muscleName] = (izomcsoportCounts[muscleName] || 0) + 1;
         }
       });
     });
 
+    //ID KEY VERSION: ha esetleg inkább az kéne
+
+    // const izomcsoportCounts: Record<number, number> = {};
+
+    // items.forEach(edzes => {
+    //   edzes.gyakorlatok.forEach(gyakorlatConn => {
+    //     const gyakorlat = gyakorlatConn.gyakorlat;
+    //     if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
+    //       gyakorlat.izomcsoportok.forEach((group) => {
+    //         const muscleId = group.izomcsoport.izomcsoport_id;
+    //         izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+    //       });
+    //     } else if (gyakorlat.fo_izomcsoport) {
+    //       const muscleId = gyakorlat.fo_izomcsoport;
+    //       izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+    //     }
+    //   });
+    // });
+  
     return {
       items,
       meta: {
@@ -1057,6 +1078,7 @@ export class EdzesService {
       }
     };
   }
+  
 
 
 
