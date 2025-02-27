@@ -32,7 +32,16 @@ export class UsersService {
   }
 
   findAll() {
-    return this.db.user.findMany();
+    return this.db.user.findMany({
+      select: {
+        user_id: true,
+        email: true,
+        username: true,
+        suly: true,
+        magassag: true,
+        isAdmin: true,
+      },
+    });
   }
 
   async findOne(id: number) {
@@ -43,18 +52,26 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     } else {
-      return user;
+      const { password, ...result } = user;
+
+      return result;
     }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     
     try {
+      if (updateUserDto.password) {
+        updateUserDto.password = await hash(updateUserDto.password, 10);
+      }
+
       const user = await this.db.user.update({
         where: { user_id: id },
         data: updateUserDto,
       });
-      return user;
+      const { password, ...result } = user;
+      return result;
+
     } catch (error) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -164,5 +181,36 @@ export class UsersService {
       throw new BadRequestException('Failed to calculate BMI: ' + error.message);
     }
 
+  }
+
+  async changeAdmin(id: number, adminDto: { isAdmin: boolean }) {
+    try {
+      const user = await this.db.user.findUnique({
+        where: { user_id: id }
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      if (user.isAdmin === adminDto.isAdmin) {
+        throw new BadRequestException('User is already in the requested state');
+      }
+
+      await this.db.user.update({
+        where: { user_id: id },
+        data: {
+          isAdmin: adminDto.isAdmin
+        }
+      });
+
+      return { message: 'Admin status successfully changed' };
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new ForbiddenException('Failed to change admin status: ' + error.message);
+    }
   }
 }
