@@ -282,14 +282,13 @@ export class EdzesService {
     try {
       // Ellenőrizzük, hogy létezik-e az edzés és a felhasználóhoz tartozik-e
       const edzes = await this.db.edzes.findUnique({
-        where: { 
+        where: {
           edzes_id: edzesId,
           user_id: userId
         }
       });
 
       if (!edzes) {
-        
         throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
       }
 
@@ -308,55 +307,122 @@ export class EdzesService {
         throw new NotFoundException(`A megadott szett (setID: ${setId}) nem található az edzésben (edzesID: ${edzesId}) a gyakorlatnál (gyakorlatID: ${gyakorlatId}).`);
       }
 
-      // Csak a súlyt és az ismétlésszámot lehet módosítani
-      const updatedSet = await this.db.edzes_Gyakorlat_Set.update({
-        where: { id: setId },
-        data: {
-          weight: updateDto.weight,
-          reps: updateDto.reps
-          // set_szam nem módosítható
+      // Find the existing history record for this set
+      const existingHistory = await this.db.user_Gyakorlat_History.findFirst({
+        where: {
+          user_id: userId,
+          gyakorlat_id: gyakorlatId,
+          date: edzes.datum,
+          weight: set.weight,
+          reps: set.reps
         }
       });
 
-      // Frissítjük a history bejegyzést is
-      await this.db.user_Gyakorlat_History.create({
-        data: {
-          user_gyakorlat: {
-            connect: {
-              user_id_gyakorlat_id: {
-                user_id: userId,
-                gyakorlat_id: gyakorlatId
-              }
-            }
-          },
-          weight: updateDto.weight,
-          reps: updateDto.reps
-        }
-      });
-
-      // Lekérjük a frissített edzést
-      const updatedEdzes = await this.db.edzes.findUnique({
-        where: { edzes_id: edzesId },
-        include: {
-          gyakorlatok: {
-            include: {
-              gyakorlat: true,
-              szettek: true
-            }
+      // Get the user_gyakorlat record to check personal best
+      const userGyakorlat = await this.db.user_Gyakorlat.findUnique({
+        where: {
+          user_id_gyakorlat_id: {
+            user_id: userId,
+            gyakorlat_id: gyakorlatId
           }
         }
       });
 
+      // Update everything in a transaction
+      const result = await this.db.$transaction(async (prisma) => {
+        // Update the set
+        const updatedSet = await prisma.edzes_Gyakorlat_Set.update({
+          where: { id: setId },
+          data: {
+            weight: updateDto.weight,
+            reps: updateDto.reps
+          }
+        });
+
+        // Update or create history record
+        if (existingHistory) {
+          await prisma.user_Gyakorlat_History.update({
+            where: { id: existingHistory.id },
+            data: {
+              weight: updateDto.weight,
+              reps: updateDto.reps
+            }
+          });
+        } else {
+          await prisma.user_Gyakorlat_History.create({
+            data: {
+              user_gyakorlat: {
+                connect: {
+                  user_id_gyakorlat_id: {
+                    user_id: userId,
+                    gyakorlat_id: gyakorlatId
+                  }
+                }
+              },
+              weight: updateDto.weight,
+              reps: updateDto.reps,
+              date: edzes.datum
+            }
+          });
+        }
+
+        // Update user_gyakorlat stats including personal best
+        if (userGyakorlat) {
+          const newPersonalBest = Math.max(
+            userGyakorlat.personal_best || 0,
+            updateDto.weight
+          );
+
+          await prisma.user_Gyakorlat.update({
+            where: {
+              user_id_gyakorlat_id: {
+                user_id: userId,
+                gyakorlat_id: gyakorlatId
+              }
+            },
+            data: {
+              last_weight: updateDto.weight,
+              last_reps: updateDto.reps,
+              personal_best: newPersonalBest
+            }
+          });
+        } else {
+          // If user_gyakorlat doesn't exist, create it
+          await prisma.user_Gyakorlat.create({
+            data: {
+              user: { connect: { user_id: userId } },
+              gyakorlat: { connect: { gyakorlat_id: gyakorlatId } },
+              personal_best: updateDto.weight,
+              last_weight: updateDto.weight,
+              last_reps: updateDto.reps,
+              total_sets: 1
+            }
+          });
+        }
+
+        // Return updated edzes
+        return prisma.edzes.findUnique({
+          where: { edzes_id: edzesId },
+          include: {
+            gyakorlatok: {
+              include: {
+                gyakorlat: true,
+                szettek: true
+              }
+            }
+          }
+        });
+      });
+
       // Kiszűrjük a user adatokat
-      const { user_id, ...result } = updatedEdzes;
-      return result;
+      const { user_id, ...finalResult } = result;
+      return finalResult;
 
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException('Hiba történt a szett frissítése során: ' + error.message);
-
     }
   }
 
@@ -412,16 +478,13 @@ export class EdzesService {
     return result;
   }
 
-  private async getLatestGyakorlatHistory(gyakorlatId: number, edzesDate: Date) {
-    // Létrehozzuk az adott napi edzést összehasonlításra
-    const edzesStartOfDay = new Date(edzesDate);
-    edzesStartOfDay.setHours(0, 0, 0, 0);
-
-    const latestHistory = await this.db.user_Gyakorlat_History.findFirst({
+  private async getLatestGyakorlatHistory(gyakorlatId: number, user_id: number, edzesDate: Date) {
+    const history = await this.db.user_Gyakorlat_History.findFirst({
       where: {
         gyakorlat_id: gyakorlatId,
+        user_id: user_id,
         date: {
-          lt: edzesStartOfDay 
+          lt: edzesDate
         }
       },
       orderBy: {
@@ -429,31 +492,7 @@ export class EdzesService {
       }
     });
 
-    if (!latestHistory) {
-      return [];
-    }
-
-    // Beállítjuk az elejét és a végét az adott napnak
-    const startOfDay = new Date(latestHistory.date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(latestHistory.date);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    // Lekérjük az összes múltbeli adatot, biztosítva, hogy az edzésnél régebben vannak
-    return this.db.user_Gyakorlat_History.findMany({
-      where: {
-        gyakorlat_id: gyakorlatId,
-        date: {
-          gte: startOfDay,
-          lte: endOfDay,
-          lt: edzesStartOfDay
-        }
-      },
-      orderBy: {
-        date: 'asc'
-      }
-    });
+    return history;
   }
 
   async findAll(query: GetEdzesekQueryDto) {
@@ -556,6 +595,7 @@ export class EdzesService {
         
         const history = await this.getLatestGyakorlatHistory(
           gyakorlatConn.gyakorlat_id,
+          edzes.user_id,
           edzes.datum
         );
 
