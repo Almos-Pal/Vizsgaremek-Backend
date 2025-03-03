@@ -190,11 +190,11 @@ export class UsersService {
       });
 
       if (!user) {
-        throw new NotFoundException(`User with ID ${id} not found`);
+        throw new NotFoundException(`A felhasználó ${id} számú azonosítóval nem található`);
       }
 
       if (user.isAdmin === adminDto.isAdmin) {
-        throw new BadRequestException('User is already in the requested state');
+        throw new BadRequestException('A felhasználó már a kért állapotban van');
       }
 
       await this.db.user.update({
@@ -204,13 +204,13 @@ export class UsersService {
         }
       });
 
-      return { message: 'Admin status successfully changed' };
+      return { message: 'Admin státusz sikeresen megváltoztatva' };
 
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new ForbiddenException('Failed to change admin status: ' + error.message);
+      throw new ForbiddenException('Nem sikerült megváltoztatni az admin státuszt: ' + error.message);
     }
   }
 }

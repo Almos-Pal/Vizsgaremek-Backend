@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { join } from 'path';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -38,8 +38,13 @@ async function bootstrap() {
     transformOptions: {
       enableImplicitConversion: true,
     },
-    whitelist: true, 
-    forbidNonWhitelisted: true, 
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    exceptionFactory: (errors) => {
+      return new BadRequestException(
+        errors.map(error => `${error.property} mező hibás: ${Object.values(error.constraints).join(', ')}`)
+      );
+    }
   }));
 
   app.useStaticAssets(join(__dirname, '..', 'public'));

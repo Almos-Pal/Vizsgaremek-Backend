@@ -10,6 +10,6 @@ export class AdminGuard implements CanActivate {
       return true;
     }
     console.log('user.isAdmin:', user ? user : 'undefined');
-    throw new ForbiddenException('Access denied - Admins only');
+    throw new ForbiddenException('Hozzáférés megtagadva - csak Adminok');
   }
 }
