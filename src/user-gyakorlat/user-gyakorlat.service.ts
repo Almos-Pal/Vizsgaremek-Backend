@@ -112,33 +112,67 @@ export class UserGyakorlatService {
       return history;
     });
   }
-
   async getUserGyakorlatok(user_id: number, query: GetUserGyakorlatokQueryDto): Promise<UserGyakorlatokResponseDto> {
     const { skip, take, page, limit } = PaginationHelper.getPaginationOptions(query);
-    const { isRecord } = query;
-
+    const { isRecord, search } = query;
+  
+    // Begin with a base filter using the user_id.
+    const where: any = { user_id };
+  
+    // Add search filtering (similar to findAll) if a search term is provided.
+    if (search) {
+      where.gyakorlat_neve = {
+        contains: search,
+        mode: 'insensitive'
+      };
+    }
+  
     if (isRecord) {
-      const items = await this.prisma.user_Gyakorlat.findMany({
-        where: { user_id },
-        skip,
-        take,
-        select: {
-          personal_best: true,
-          gyakorlat: {
-            select: {
-              gyakorlat_neve: true,
-              fo_izomcsoport: true,
-              izomcsoportok: {
-                select: {
-                  izomcsoport_id: true,
-              },
+      // When isRecord is true, use a selection of specific fields.
+      const [items, total] = await Promise.all([
+        this.prisma.user_Gyakorlat.findMany({
+          where: {
+            user_id: 2,
+            gyakorlat: { // Nest the filter here
+              gyakorlat_neve: {
+                contains: search || "",
+                mode: "insensitive"
+              }
+            }
+          },
+          skip: 0,
+          take: 10,
+          orderBy: {
+            personal_best: "desc"
+          },
+          select: {
+            personal_best: true,
+            gyakorlat: {
+              select: {
+                gyakorlat_neve: true,
+                fo_izomcsoport: true,
+                izomcsoportok: {
+                  select: {
+                    izomcsoport_id: true
+                  }
+                }
+              }
             }
           }
-        }
-      }
-    });
-  
-      const total = await this.prisma.user_Gyakorlat.count({ where: { user_id } });
+        }),
+        this.prisma.user_Gyakorlat.count({
+          where: {
+            user_id: 2,
+            gyakorlat: { // Apply the same nested filter for counting
+              gyakorlat_neve: {
+                contains: search || "",
+                mode: "insensitive"
+              }
+            }
+          }
+        })
+      ]);
+      
   
       return {
         items,
@@ -146,33 +180,32 @@ export class UserGyakorlatService {
       };
     }
   
-    
-
+    // Otherwise, include more detailed information along with history.
     const [items, total] = await Promise.all([
       this.prisma.user_Gyakorlat.findMany({
-      where: { user_id },
-      skip,
-      take,
-      include: {
-        gyakorlat: true,
-        history: {
-        orderBy: {
-          date: 'desc'
-        },
-        take: 10 // Utolsó 10 bejegyzés
+        where,
+        skip,
+        take,
+        include: {
+          gyakorlat: true,
+          history: {
+            orderBy: {
+              date: 'desc'
+            },
+            take: 10 // Last 10 entries
+          }
         }
-      }
       }),
-      this.prisma.user_Gyakorlat.count({
-      where: { user_id }
-      })
+      this.prisma.user_Gyakorlat.count({ where })
     ]);
-
+  
     return {
       items,
       meta: PaginationHelper.createMeta(page, limit, total)
     };
   }
+  
+  
 
   // Egy konkrét user-gyakorlat részletes adatai
   async getUserGyakorlatDetails(user_id: number, gyakorlat_id: number) {

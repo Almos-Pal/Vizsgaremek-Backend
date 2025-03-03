@@ -26,6 +26,12 @@ export class GetUserGyakorlatokQueryDto {
         default: false
     })
     isRecord?: boolean;
+
+    @ApiProperty({
+        description: 'Keresési feltétel gyakorlat neve alapján',
+        required: false
+    })
+    search?: string;
 }
 
 export class UserGyakorlatokResponseDto implements PaginatedResponseDto<UserGyakorlat> {
