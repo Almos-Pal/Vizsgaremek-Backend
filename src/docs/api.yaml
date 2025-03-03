@@ -1,5 +1,66 @@
 openapi: 3.0.0
 paths:
+  /edzes/intervallum:
+    get:
+      description: >-
+        Lekér egy intervallumban lévő edzéseket a user azonosítója és, egy kezdő
+        és végző dátumon, vagy kiválasztott típus intervallumon belül, a
+        gyakorlatokkal és izomcsoportokkal együtt
+      operationId: findManyByDate
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Oldalszám
+          schema:
+            minimum: 1
+            default: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Elemek száma oldalanként
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 10
+            type: number
+        - name: user_id
+          required: false
+          in: query
+          description: Filter edzések by user ID
+          schema:
+            type: number
+        - name: startDate
+          required: false
+          in: query
+          description: A kezdő dátum
+          schema:
+            type: string
+        - name: endDate
+          required: false
+          in: query
+          description: Az végző dátuma
+          schema:
+            type: string
+        - name: type
+          required: false
+          in: query
+          description: típus megadás, hogy milyen időintervallumot szeretnénk lekérni
+          schema:
+            type: week|month|halfyear|all
+      responses:
+        '200':
+          description: Az edzések sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: Az edzések nem találhatóak
+      summary: Egy user adott intervallumon belüli edzései
+      tags:
+        - Edzes
   /edzes:
     post:
       description: Létrehoz egy új edzést a megadott felhasználóhoz
@@ -418,6 +479,20 @@ paths:
           description: ''
       tags:
         - Users
+  /users/{id}/bmi:
+    get:
+      operationId: getBMI
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
   /auth/register:
     post:
       operationId: registerUser
@@ -730,6 +805,13 @@ paths:
             maximum: 100
             default: 10
             type: number
+        - name: isRecord
+          required: false
+          in: query
+          description: ' Ez a tulajdonság arra szolgál, hogy meghatározza, a rekord boolean értékként'
+          schema:
+            default: false
+            type: boolean
       responses:
         '200':
           description: A gyakorlatok sikeresen lekérve
@@ -818,29 +900,6 @@ servers:
     description: Development Server
 components:
   schemas:
-    CreateEdzesDto:
-      type: object
-      properties:
-        edzes_neve:
-          type: string
-          description: Az edzés neve
-          example: Láb nap
-        datum:
-          type: string
-          description: Az edzés dátuma
-          example: '2024-03-20'
-        user_id:
-          type: number
-          description: A felhasználó azonosítója
-          example: 1
-        ido:
-          type: number
-          description: Az edzés időtartama percben
-          example: 60
-      required:
-        - edzes_neve
-        - datum
-        - user_id
     EdzesGyakorlatSet:
       type: object
       properties:
@@ -944,6 +1003,29 @@ components:
         - datum
         - ido
         - gyakorlatok
+    CreateEdzesDto:
+      type: object
+      properties:
+        edzes_neve:
+          type: string
+          description: Az edzés neve
+          example: Láb nap
+        datum:
+          type: string
+          description: Az edzés dátuma
+          example: '2024-03-20'
+        user_id:
+          type: number
+          description: A felhasználó azonosítója
+          example: 1
+        ido:
+          type: number
+          description: Az edzés időtartama percben
+          example: 60
+      required:
+        - edzes_neve
+        - datum
+        - user_id
     AddEdzesGyakorlatDto:
       type: object
       properties:
@@ -1048,7 +1130,18 @@ components:
           example: 60
     UpdateUserDto:
       type: object
-      properties: {}
+      properties:
+        suly:
+          type: number
+          example: 80
+          description: A felhasználó a súlya
+        magassag:
+          type: number
+          example: 180
+          description: A felhasználó a magassága
+      required:
+        - suly
+        - magassag
     CreateUserDto:
       type: object
       properties: {}
