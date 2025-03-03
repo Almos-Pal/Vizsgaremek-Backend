@@ -488,7 +488,7 @@ export class EdzesService {
         gyakorlat_id: gyakorlatId,
         user_id: user_id,
         date: {
-          lt: edzesDate
+          lt: edzesStartOfDay 
         }
       },
       orderBy: {
