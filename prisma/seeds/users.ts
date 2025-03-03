@@ -5,35 +5,42 @@ const prisma = new PrismaClient();
 
 async function main() {
     try {
-        await prisma.user.deleteMany();
+        await prisma.user_Gyakorlat_History.deleteMany();
         await prisma.user_Gyakorlat.deleteMany();
+        await prisma.user.deleteMany();
         //Késöbb az összes többi user related táblát is törölni kell
+        
+        const data = [ 
+            {
+                email: 'admin@gmail.com',
+                username: 'Admin',
+                password: await hash('Admin123.',10),
+                isAdmin: true
+               
+            },
+            {
+                email: 'user@gmail.com',
+                username: 'BasicUser',
+                password: await hash('User123.', 10),
+            },
+            {
+                email: 'pepesdenes@gmail.com',
+                username: 'PepesDenes',
+                password: await hash('Pepes123.',10),
+            },
+            {
+                email: 'veghbela@gmail.com',
+                username: 'VeghBela',
+                password: await hash('Vegh123.',10),
+            }
+        ]
 
-        await prisma.user.createMany({
-            data: [
-                {
-                    email: 'admin@gmail.com',
-                    username: 'Admin',
-                    password: await hash('Admin123.',10),
-                    //admin: true
-                },
-                {
-                    email: 'user@gmail.com',
-                    username: 'BasicUser',
-                    password: await hash('User123.', 10),
-                },
-                {
-                    email: 'pepesdenes@gmail.com',
-                    username: 'PepesDenes',
-                    password: await hash('Pepes123.',10),
-                },
-                {
-                    email: 'veghbela@gmail.com',
-                    username: 'VeghBela',
-                    password: await hash('Vegh123.',10),
-                }
-            ]
-        })
+
+        for (const userData of data) {
+            await prisma.user.create({
+                data: userData,
+            });
+        }
 
         const users = await prisma.user.findMany();
         console.log('Seeding successful:', users);

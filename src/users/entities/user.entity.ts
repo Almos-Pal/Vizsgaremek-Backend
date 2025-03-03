@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDefined, IsEmail, IsNumber, IsOptional, IsString, IsStrongPassword } from "class-validator";
+import { IsBoolean, IsDefined, IsEmail, IsNumber, IsOptional, IsString, IsStrongPassword } from "class-validator";
 
 export class User {
 
@@ -21,6 +21,10 @@ export class User {
     @IsStrongPassword()
     password: string;
 
+
+    @IsDefined()
+    @IsBoolean()
+    isAdmin?: boolean;
 
     @ApiProperty(
         {

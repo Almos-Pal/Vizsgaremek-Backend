@@ -20,8 +20,9 @@ export class AuthService {
         const user = await this.validateUser(loginDto);
         const payload = {
             email: user.email,
+            isAdmin: user.isAdmin,
             sub: {
-                username: user.username
+                username: user.username,
             }
         }
 
@@ -46,9 +47,8 @@ export class AuthService {
     async validateUser(loginDto: LoginDto) {
         const user = await this.usersService.findByEmail(loginDto.email);
 
-
         if (user && (await compare(loginDto.password, user.password))) {
-            const { password, ...result } = user;
+            const { password,  ...result } = user;
             return result;
         }
 
@@ -59,6 +59,7 @@ export class AuthService {
     async refreshToken(user: any) {
         const payload = {
             email: user.email,
+            isAdmin: user.isAdmin,
             sub: user.sub
         }
 

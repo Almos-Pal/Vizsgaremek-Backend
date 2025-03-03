@@ -3,11 +3,11 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { join } from 'path';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -37,13 +37,20 @@ async function bootstrap() {
     transform: true,
     transformOptions: {
       enableImplicitConversion: true,
+    },
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    exceptionFactory: (errors) => {
+      return new BadRequestException(
+        errors.map(error => `${error.property} mező hibás: ${Object.values(error.constraints).join(', ')}`)
+      );
     }
   }));
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
-  
+
   await app.listen(8000);
 }
 bootstrap();

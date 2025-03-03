@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -7,7 +7,7 @@ import getBmiCategory from 'src/common/helpers/bmi';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(private readonly db: PrismaService) { }
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -32,7 +32,16 @@ export class UsersService {
   }
 
   findAll() {
-    return this.db.user.findMany();
+    return this.db.user.findMany({
+      select: {
+        user_id: true,
+        email: true,
+        username: true,
+        suly: true,
+        magassag: true,
+        isAdmin: true,
+      },
+    });
   }
 
   async findOne(id: number) {
@@ -43,17 +52,26 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     } else {
-      return user;
+      const { password, ...result } = user;
+
+      return result;
     }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    
     try {
-      const user = await this.db.user.update({ 
-        where: { user_id: id }, 
-        data: updateUserDto 
+      if (updateUserDto.password) {
+        updateUserDto.password = await hash(updateUserDto.password, 10);
+      }
+
+      const user = await this.db.user.update({
+        where: { user_id: id },
+        data: updateUserDto,
       });
-      return user;
+      const { password, ...result } = user;
+      return result;
+
     } catch (error) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -131,37 +149,68 @@ export class UsersService {
   }
 
   async getBMI(id: number) {
-    try{
+    try {
       const user = await this.db.user.findUnique({
         where: { user_id: id }
       });
-  
+
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
-      if(user.suly === null || user.magassag === null) {
+      if (user.suly === null || user.magassag === null) {
         throw new BadRequestException('User weight or height is not set');
-      
-      }
-      
 
-      
-      
+      }
+
+
+
+
       const bmi = user.suly / ((user.magassag / 100) ** 2);
 
 
       const type = getBmiCategory(bmi);
-      
-      return { 
+
+      return {
         bmi: bmi.toFixed(2),
         type: type
       };
-    } catch(error) {
+    } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException('Failed to calculate BMI: ' + error.message);
     }
- 
+
+  }
+
+  async changeAdmin(id: number, adminDto: { isAdmin: boolean }) {
+    try {
+      const user = await this.db.user.findUnique({
+        where: { user_id: id }
+      });
+
+      if (!user) {
+        throw new NotFoundException(`A felhasználó ${id} számú azonosítóval nem található`);
+      }
+
+      if (user.isAdmin === adminDto.isAdmin) {
+        throw new BadRequestException('A felhasználó már a kért állapotban van');
+      }
+
+      await this.db.user.update({
+        where: { user_id: id },
+        data: {
+          isAdmin: adminDto.isAdmin
+        }
+      });
+
+      return { message: 'Admin státusz sikeresen megváltoztatva' };
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new ForbiddenException('Nem sikerült megváltoztatni az admin státuszt: ' + error.message);
+    }
   }
 }
