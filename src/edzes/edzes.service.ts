@@ -511,6 +511,7 @@ export class EdzesService {
     return this.db.user_Gyakorlat_History.findMany({
       where: {
         gyakorlat_id: gyakorlatId,
+        user_id: user_id,
         date: {
           gte: startOfDay,
           lte: endOfDay,
