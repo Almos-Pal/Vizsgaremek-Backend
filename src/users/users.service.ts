@@ -4,6 +4,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import { hash } from 'bcrypt';
 import getBmiCategory from 'src/common/helpers/bmi';
+import { GetUserQueryDto, UserResponseDto } from './dto/user.dto';
+import { PaginationHelper } from 'src/common/helpers/pagination.helper';
 
 @Injectable()
 export class UsersService {
@@ -31,17 +33,49 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return this.db.user.findMany({
-      select: {
-        user_id: true,
-        email: true,
-        username: true,
-        suly: true,
-        magassag: true,
-        isAdmin: true,
-      },
-    });
+  async findAll(query: GetUserQueryDto): Promise<UserResponseDto> {
+    const { skip, take, page, limit, username, isAdmin } = PaginationHelper.getPaginationOptions(query);
+
+    const where: any = {};
+
+    if (username) {
+      where.username = {
+        contains: username,
+        mode: 'insensitive'
+      };
+    }
+    if(query.email) {
+      where.email = {
+        contains: query.email,
+        mode: 'insensitive'
+    }
+  }
+
+    if (isAdmin !== undefined) {
+      where.isAdmin = isAdmin;
+    }
+
+    const [items, total] = await Promise.all([
+      this.db.user.findMany({
+        where,
+        skip,
+        take,
+        select: {
+          user_id: true,
+          username: true,
+          email: true,
+          suly: true,
+          magassag: true,
+          isAdmin: true,
+        },
+      }),
+      this.db.user.count({ where })
+    ]);
+
+    return {
+      items,
+      meta: PaginationHelper.createMeta(page, limit, total)
+    };
   }
 
   async findOne(id: number) {

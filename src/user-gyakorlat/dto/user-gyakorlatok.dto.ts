@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginatedResponseDto, PaginationMetaDto } from '../../common/dto/pagination.dto';
 import { UserGyakorlat } from '../entities/user-gyakorlat.entity';
+import { IsOptional } from 'class-validator';
 
 export class GetUserGyakorlatokQueryDto {
     @ApiProperty({
@@ -9,6 +10,7 @@ export class GetUserGyakorlatokQueryDto {
         default: 1,
         minimum: 1
     })
+    @IsOptional()
     page?: number = 1;
 
     @ApiProperty({
@@ -18,6 +20,7 @@ export class GetUserGyakorlatokQueryDto {
         minimum: 1,
         maximum: 100
     })
+    @IsOptional()
     limit?: number = 10;
 
     @ApiProperty({
@@ -25,12 +28,14 @@ export class GetUserGyakorlatokQueryDto {
         required: false,
         default: false
     })
+    @IsOptional()
     isRecord?: boolean;
 
     @ApiProperty({
         description: 'Keresési feltétel gyakorlat neve alapján',
         required: false
     })
+    @IsOptional()
     search?: string;
 }
 

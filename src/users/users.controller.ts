@@ -1,17 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
 import { AdminDto } from './dto/change-admin.dto';
+import { GetUserQueryDto } from './dto/user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  // @UseGuards( AdminGuard)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  
+ async findAll(    @Query() query: GetUserQueryDto
+ ) {
+    return this.usersService.findAll(query);
   }
 
 

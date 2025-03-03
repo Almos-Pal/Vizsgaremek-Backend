@@ -3,28 +3,32 @@ import { IsBoolean, IsDefined, IsEmail, IsNumber, IsOptional, IsString, IsStrong
 
 export class User {
 
+    @ApiProperty()
     @IsDefined()
     @IsNumber()
     user_id: number;
 
+    @ApiProperty()
     @IsDefined()
     @IsString()
     username: string;
 
+    @ApiProperty()
     @IsDefined()
     @IsString()
     @IsEmail()
     email: string;
 
+    @ApiProperty({ required: false })
     @IsDefined()
     @IsString()
     @IsStrongPassword()
-    password: string;
+    password?: string;
 
-
+    @ApiProperty()
     @IsDefined()
     @IsBoolean()
-    isAdmin?: boolean;
+    isAdmin: boolean;
 
     @ApiProperty(
         {
@@ -34,7 +38,8 @@ export class User {
     )
     @IsNumber()
     @IsOptional()
-    suly?: number;
+    @ApiProperty({ required: false })
+    suly?: number | null;
 
     @ApiProperty(
         {
@@ -44,5 +49,6 @@ export class User {
     )
     @IsNumber()
     @IsOptional()
-    magassag?: number;
+    @ApiProperty({ required: false })
+    magassag?: number | null;
 }

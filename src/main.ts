@@ -40,6 +40,8 @@ async function bootstrap() {
     },
     whitelist: true,
     forbidNonWhitelisted: true,
+    forbidUnknownValues: false,
+    validateCustomDecorators: true,
     exceptionFactory: (errors) => {
       return new BadRequestException(
         errors.map(error => `${error.property} mező hibás: ${Object.values(error.constraints).join(', ')}`)
