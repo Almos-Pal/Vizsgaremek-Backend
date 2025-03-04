@@ -1032,43 +1032,23 @@ export class EdzesService {
     
     const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
   
-    
-    const izomcsoportCounts: Record<string, number> = {};
-  
+
+    const izomcsoportCounts: Record<number, number> = {};
+
     items.forEach(edzes => {
       edzes.gyakorlatok.forEach(gyakorlatConn => {
         const gyakorlat = gyakorlatConn.gyakorlat;
         if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
           gyakorlat.izomcsoportok.forEach((group) => {
-            const muscleName = group.izomcsoport.nev;
-            izomcsoportCounts[muscleName] = (izomcsoportCounts[muscleName] || 0) + 1;
+            const muscleId = group.izomcsoport.izomcsoport_id;
+            izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
           });
         } else if (gyakorlat.fo_izomcsoport) {
-         
-          const muscleName = `Muscle ${gyakorlat.fo_izomcsoport}`;
-          izomcsoportCounts[muscleName] = (izomcsoportCounts[muscleName] || 0) + 1;
+          const muscleId = gyakorlat.fo_izomcsoport;
+          izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
         }
       });
     });
-
-    //ID KEY VERSION: ha esetleg inkább az kéne
-
-    // const izomcsoportCounts: Record<number, number> = {};
-
-    // items.forEach(edzes => {
-    //   edzes.gyakorlatok.forEach(gyakorlatConn => {
-    //     const gyakorlat = gyakorlatConn.gyakorlat;
-    //     if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
-    //       gyakorlat.izomcsoportok.forEach((group) => {
-    //         const muscleId = group.izomcsoport.izomcsoport_id;
-    //         izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
-    //       });
-    //     } else if (gyakorlat.fo_izomcsoport) {
-    //       const muscleId = gyakorlat.fo_izomcsoport;
-    //       izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
-    //     }
-    //   });
-    // });
   
     return {
       items,
