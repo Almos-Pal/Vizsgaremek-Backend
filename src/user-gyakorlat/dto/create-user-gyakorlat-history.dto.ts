@@ -37,4 +37,13 @@ export class CreateUserGyakorlatHistoryDto {
   @IsNumber()
   @IsNotEmpty()
   reps: number;
+
+  @ApiProperty({
+    description: 'Az edzés azonosítója',
+    required: true,
+    example: 1
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  edzes_id: number;
 } 

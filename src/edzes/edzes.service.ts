@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -191,6 +191,14 @@ export class EdzesService {
         // Létrehozunk egy history bejegyzést az edzés dátumával
         await prisma.user_Gyakorlat_History.create({
           data: {
+            weight: setDto.weight,
+            reps: setDto.reps,
+            date: edzes.datum,
+            edzes: {
+              connect: {
+                edzes_id: edzesId
+              }
+            },
             user_gyakorlat: {
               connectOrCreate: {
                 where: {
@@ -200,18 +208,23 @@ export class EdzesService {
                   }
                 },
                 create: {
-                  user: { connect: { user_id: userId } },
-                  gyakorlat: { connect: { gyakorlat_id: gyakorlatId } },
+                  user: {
+                    connect: {
+                      user_id: userId
+                    }
+                  },
+                  gyakorlat: {
+                    connect: {
+                      gyakorlat_id: gyakorlatId
+                    }
+                  },
                   personal_best: setDto.weight,
                   last_weight: setDto.weight,
                   last_reps: setDto.reps,
                   total_sets: 1
                 }
               }
-            },
-            weight: setDto.weight,
-            reps: setDto.reps,
-            date: edzes.datum
+            }
           }
         });
 
@@ -361,6 +374,11 @@ export class EdzesService {
                   }
                 }
               },
+              edzes: {
+                connect: {
+                  edzes_id: edzesId
+                }
+              },
               weight: updateDto.weight,
               reps: updateDto.reps,
               date: edzes.datum
@@ -429,55 +447,84 @@ export class EdzesService {
   }
 
   async removeSet(edzesId: number, userId: number, gyakorlatId: number, setId: number) {
-    // Ellenőrizzük, hogy létezik-e az edzés és a felhasználóhoz tartozik-e
-    const edzes = await this.db.edzes.findUnique({
-      where: {
-        edzes_id: edzesId,
-        user_id: userId
+    try {
+      // Check if the edzes exists and belongs to the user
+      const edzes = await this.db.edzes.findUnique({
+        where: { edzes_id: edzesId },
+        include: {
+          gyakorlatok: {
+            include: {
+              szettek: true
+            }
+          }
+        }
+      });
+
+      if (!edzes) {
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található.`);
       }
-    });
 
-    if (!edzes) {
-      throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
-    }
+      if (edzes.user_id !== userId) {
+        throw new ForbiddenException('Nincs jogosultsága az edzés módosításához.');
+      }
 
-    // Ellenőrizzük, hogy létezik-e a szett
-    const set = await this.db.edzes_Gyakorlat_Set.findFirst({
-      where: {
-        id: setId,
-        edzes_gyakorlat: {
+      // Get the set to be deleted
+      const set = await this.db.edzes_Gyakorlat_Set.findFirst({
+        where: {
+          id: setId,
           edzes_id: edzesId,
           gyakorlat_id: gyakorlatId
         }
+      });
+
+      if (!set) {
+        throw new NotFoundException(`A szett nem található.`);
       }
-    });
 
-    if (!set) {
-      throw new NotFoundException(`A megadott szett (setID: ${setId}) nem található az edzésben (edzesID: ${edzesId}) a gyakorlatnál (gyakorlatID: ${gyakorlatId}).`);
+      // Find and delete the history entry for this specific set
+      const historyEntry = await this.db.user_Gyakorlat_History.findFirst({
+        where: {
+          user_id: userId,
+          gyakorlat_id: gyakorlatId,
+          weight: set.weight,
+          reps: set.reps,
+          date: edzes.datum
+        }
+      });
 
-    }
+      if (historyEntry) {
+        await this.db.user_Gyakorlat_History.delete({
+          where: { id: historyEntry.id }
+        });
+      }
 
-    // Töröljük a szettet
-    await this.db.edzes_Gyakorlat_Set.delete({
-      where: { id: setId }
-    });
+      // Delete the set
+      await this.db.edzes_Gyakorlat_Set.delete({
+        where: { id: setId }
+      });
 
-    // Lekérjük a frissített edzést
-    const updatedEdzes = await this.db.edzes.findUnique({
-      where: { edzes_id: edzesId },
-      include: {
-        gyakorlatok: {
-          include: {
-            gyakorlat: true,
-            szettek: true
+      // Update the total_sets count in user_gyakorlat
+      await this.db.user_Gyakorlat.update({
+        where: {
+          user_id_gyakorlat_id: {
+            user_id: userId,
+            gyakorlat_id: gyakorlatId
+          }
+        },
+        data: {
+          total_sets: {
+            decrement: 1
           }
         }
-      }
-    });
+      });
 
-    // Kiszűrjük a user adatokat
-    const { user_id, ...result } = updatedEdzes;
-    return result;
+      return { message: 'A szett sikeresen törölve.' };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new BadRequestException('Hiba történt a szett törlése közben: ' + error.message);
+    }
   }
 
   private async getLatestGyakorlatHistory(gyakorlatId: number, user_id: number, edzesDate: Date) {
@@ -740,30 +787,33 @@ export class EdzesService {
   async remove(id: number) {
     try {
       const edzes = await this.db.edzes.findUnique({
-        where: { edzes_id: id }
+        where: { edzes_id: id },
+        include: {
+          gyakorlatok: {
+            include: {
+              szettek: true
+            }
+          }
+        }
       });
 
       if (!edzes) {
         throw new NotFoundException(`Az edzés (ID: ${id}) nem található.`);
-
       }
 
-      // Tranzakcióban végezzük a törlést
+      // Delete all related records in a transaction
       await this.db.$transaction(async (prisma) => {
-        // Először lekérjük az összes history bejegyzést amit törölni kell
+        // Find and delete history entries for this workout's date and exercises
         const historyEntries = await prisma.user_Gyakorlat_History.findMany({
           where: {
             user_id: edzes.user_id,
             gyakorlat_id: {
-              in: (await prisma.edzes_Gyakorlat.findMany({
-                where: { edzes_id: id },
-                select: { gyakorlat_id: true }
-              })).map(g => g.gyakorlat_id)
-            }
+              in: edzes.gyakorlatok.map(g => g.gyakorlat_id)
+            },
+            date: edzes.datum
           }
         });
 
-        // Töröljük a history bejegyzéseket
         if (historyEntries.length > 0) {
           await prisma.user_Gyakorlat_History.deleteMany({
             where: {
@@ -774,32 +824,47 @@ export class EdzesService {
           });
         }
 
-        // Töröljük a szetteket
+        // Delete all sets for this workout
         await prisma.edzes_Gyakorlat_Set.deleteMany({
           where: {
-            edzes_gyakorlat: {
-              edzes_id: id
-            }
+            edzes_id: id
           }
         });
 
-        // Töröljük az edzés-gyakorlat kapcsolatokat
+        // Update total_sets count for each gyakorlat
+        for (const gyakorlat of edzes.gyakorlatok) {
+          await prisma.user_Gyakorlat.update({
+            where: {
+              user_id_gyakorlat_id: {
+                user_id: edzes.user_id,
+                gyakorlat_id: gyakorlat.gyakorlat_id
+              }
+            },
+            data: {
+              total_sets: {
+                decrement: gyakorlat.szettek.length
+              }
+            }
+          });
+        }
+
+        // Delete edzes-gyakorlat connections
         await prisma.edzes_Gyakorlat.deleteMany({
           where: { edzes_id: id }
         });
 
-        // Végül töröljük magát az edzést
+        // Finally delete the edzes itself
         await prisma.edzes.delete({
           where: { edzes_id: id }
         });
       });
 
       return { message: 'Az edzés sikeresen törölve.' };
-
-
     } catch (error) {
-      throw new BadRequestException('Hiba történt az edzés törlése során: ' + error.message);
-
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Hiba történt az edzés törlése közben: ' + error.message);
     }
   }
 

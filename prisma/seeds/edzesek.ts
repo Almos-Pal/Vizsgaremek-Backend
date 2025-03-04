@@ -136,7 +136,8 @@ async function main() {
                                 gyakorlat_id: gyakorlat.gyakorlat_id,
                                 weight: set.weight,
                                 reps: set.reps,
-                                date: workoutDate
+                                date: workoutDate,
+                                edzes_id: edzes.edzes_id
                             }
                         });
                     }
