@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsInt } from 'class-validator';
+import { IsOptional, IsNumber, IsInt, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
@@ -30,4 +30,16 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsInt()
     @Type(() => Number)
     user_id?: number;
+
+    @IsOptional()
+    @IsString()
+    startDate?: string
+    
+    @IsOptional()
+    @IsString()
+    endDate?: string
+    
+    @IsOptional()
+    @IsString()
+    type?: string
 } 

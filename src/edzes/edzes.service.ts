@@ -949,11 +949,11 @@ export class EdzesService {
 
 
   async findManyByDate(
-    startDate: string,
-    endDate: string,
     query: GetEdzesekQueryDto,
-    type: "week" | "month" | "halfyear" | "all"
   ) {
+  const startDate =  query.startDate
+  const endDate =  query.endDate
+   const type = query.type
     const { skip, take, page, limit, user_id } =
       PaginationHelper.getPaginationOptions(query);
     let edzesWhere = {};
