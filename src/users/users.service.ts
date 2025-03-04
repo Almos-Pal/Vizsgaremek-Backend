@@ -35,26 +35,25 @@ export class UsersService {
 
   async findAll(query: GetUserQueryDto): Promise<UserResponseDto> {
     const { skip, take, page, limit, username, isAdmin } = PaginationHelper.getPaginationOptions(query);
-
+  
     const where: any = {};
-
+  
     if (username) {
       where.username = {
         contains: username,
         mode: 'insensitive'
       };
     }
-    if(query.email) {
+    
+    if (query.email) {
       where.email = {
         contains: query.email,
         mode: 'insensitive'
+      };
     }
-  }
-
-    if (isAdmin !== undefined) {
-      where.isAdmin = isAdmin;
+    if (query.hasOwnProperty('isAdmin')) {
+      where.isAdmin = typeof isAdmin === 'string' ? isAdmin.toLowerCase() === 'true' : isAdmin;
     }
-
     const [items, total] = await Promise.all([
       this.db.user.findMany({
         where,
@@ -71,13 +70,11 @@ export class UsersService {
       }),
       this.db.user.count({ where })
     ]);
-
     return {
       items,
       meta: PaginationHelper.createMeta(page, limit, total)
     };
   }
-
   async findOne(id: number) {
     const user = await this.db.user.findUnique({
       where: { user_id: id },

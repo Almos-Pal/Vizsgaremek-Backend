@@ -18,8 +18,7 @@ export class GetUserQueryDto extends PaginationQueryDto {
         required: false
     })
     @IsOptional()
-    @IsBoolean()
-    isAdmin?: boolean;
+    isAdmin?: string;
 
     @ApiProperty({
         description: 'keresési feltétel email alapján',
