@@ -7,8 +7,10 @@ async function main() {
     try {
         await prisma.user_Gyakorlat_History.deleteMany();
         await prisma.user_Gyakorlat.deleteMany();
+        await prisma.edzes_Gyakorlat_Set.deleteMany();
+        await prisma.edzes_Gyakorlat.deleteMany();
+        await prisma.edzes.deleteMany();
         await prisma.user.deleteMany();
-        //Késöbb az összes többi user related táblát is törölni kell
         
         const data = [ 
             {
