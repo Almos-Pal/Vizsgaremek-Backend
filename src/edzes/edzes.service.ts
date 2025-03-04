@@ -1162,6 +1162,86 @@ export class EdzesService {
     }
   }
 
+async findTen(user_Id:number,gyakorlat_id:number){
+  try {
+    if (!isNumber(user_Id)) {
+      throw new BadRequestException("Hibás a user_id formátuma");
+    }
+
+    const edzesek = await this.db.edzes.findMany({
+      where: {
+        user_id: user_Id,
+        gyakorlatok:{
+          some:{
+            gyakorlat:{
+              gyakorlat_id:gyakorlat_id
+            }
+          }
+        }
+      },
+      include: {
+        gyakorlatok: {
+          include: {
+            gyakorlat: {              
+              include: {
+                izomcsoportok: {
+                  include: {
+                    izomcsoport: true,
+                  },
+                },
+              },
+            },
+            szettek: {
+              orderBy: {
+                set_szam: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (edzesek.length === 0) {
+      throw new NotFoundException(`Az edzés nem található.`);
+    }
+
+    
+          const sortedEdzesek = edzesek.sort((a, b) => {
+            return b.datum.getTime() - a.datum.getTime();});
+          
+
+
+    const enrichedEdzesek = sortedEdzesek.slice(0,10).map((edzes) => {
+      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
+        const total_sets = gyakorlatConn.szettek.length;
+        return {
+          ...gyakorlatConn,
+          total_sets
+        };
+      });
+     return {
+        ...edzes,
+        gyakorlatok: gyakorlatokWithTotals
+      };
+    });
+    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
+
+
+    return items;
+
+  } catch (error) {
+    console.error(error); 
+
+    if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      throw error; 
+    }
+
+    throw new InternalServerErrorException("Hiba történt az edzés lekérdezésekor.");
+  }
+
+
+}
+
 }
 function startOfDay(givenDate: Date): Date {
   const start = new Date(givenDate);
