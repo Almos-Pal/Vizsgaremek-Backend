@@ -974,7 +974,7 @@ export class EdzesService {
           AND: {
             ...(user_id ? { user_id } : {}),
             datum: {
-              gte: new Date(now.getTime() - (date * 24 * 60 * 60 * 1000)),
+              gte: new Date(now.getTime() - date * 24 * 60 * 60 * 1000),
               lte: now
             }
           }
@@ -1001,43 +1001,47 @@ export class EdzesService {
               },
               szettek: {
                 orderBy: {
-                  set_szam: 'asc'
+                  set_szam: "asc"
                 }
               }
             }
           }
         },
         orderBy: {
-          datum: 'desc'
+          datum: "desc"
         }
       }),
       this.db.edzes.count({ where })
     ]);
   
-    // Enrich each workout with the total number of sets per exercise.
     const enrichedEdzesek = edzesek.map((edzes) => {
-      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
-        const total_sets = gyakorlatConn.szettek.length;
-        return {
-          ...gyakorlatConn,
-          total_sets
-        };
-      });
+      const gyakorlatokWithTotals = edzes.gyakorlatok
+        .map((gyakorlatConn) => {
+          const total_sets = gyakorlatConn.szettek.length;
+  
+          if (total_sets === 0) return null; 
+  
+          return {
+            ...gyakorlatConn,
+            total_sets
+          };
+        })
+        .filter(Boolean); 
+  
       return {
         ...edzes,
         gyakorlatok: gyakorlatokWithTotals
       };
     });
   
-    
-    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
-  
-
+   
     const izomcsoportCounts: Record<number, number> = {};
-
-    items.forEach(edzes => {
-      edzes.gyakorlatok.forEach(gyakorlatConn => {
+  
+    enrichedEdzesek.forEach((edzes) => {
+      edzes.gyakorlatok.forEach((gyakorlatConn) => {
         const gyakorlat = gyakorlatConn.gyakorlat;
+  
+     
         if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
           gyakorlat.izomcsoportok.forEach((group) => {
             const muscleId = group.izomcsoport.izomcsoport_id;
@@ -1051,13 +1055,14 @@ export class EdzesService {
     });
   
     return {
-      items,
+      items: enrichedEdzesek.map(({ user_id, ...edzes }) => edzes),
       meta: {
         ...PaginationHelper.createMeta(page, limit, total),
-        izomcsoportCounts 
+        izomcsoportCounts
       }
     };
   }
+  
   
 
 
