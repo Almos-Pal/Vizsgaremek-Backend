@@ -10,6 +10,7 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
         default: 1,
         minimum: 1
     })
+    @IsOptional()
     page?: number = 1;
 
     @ApiProperty({
@@ -19,6 +20,7 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
         minimum: 1,
         maximum: 100
     })
+    @IsOptional()
     limit?: number = 10;
 
     @ApiProperty({

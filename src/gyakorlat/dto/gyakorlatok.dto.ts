@@ -27,6 +27,7 @@ export class GetGyakorlatokQueryDto {
         default: 1,
         minimum: 1
     })
+    @IsOptional()
     page?: number = 1;
 
     @ApiProperty({
@@ -36,6 +37,7 @@ export class GetGyakorlatokQueryDto {
         minimum: 1,
         maximum: 100
     })
+    @IsOptional()
     limit?: number = 10;
 
     @ApiProperty({
