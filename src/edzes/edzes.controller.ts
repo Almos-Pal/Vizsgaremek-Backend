@@ -16,6 +16,26 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 export class EdzesController {
   constructor(private readonly edzesService: EdzesService) { }
 
+  @Get('ten')
+  @ApiOperation({
+    summary: 'A legutóbbi 10 edzés',
+    description: 'Lekéri a legutóbbi 10 edzés a hozzájuk tartozó gyakorlatokkal és izomcsoportokkal együtt'
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    required: true,
+    type: 'number'
+  })
+  @ApiQuery({
+    name: 'gyakorlat',
+    description: 'A gyakorlat id-ja',
+    required: true,
+    type: 'number'
+  })
+      findTen(@Query('userId') userId: number,@Query('gyakorlat') gyakorlat: number) {
+    return this.edzesService.findTen(userId,gyakorlat);
+  }
 
   @Get('intervallum')
   @ApiOperation({
