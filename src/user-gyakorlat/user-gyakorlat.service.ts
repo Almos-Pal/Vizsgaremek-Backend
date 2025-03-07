@@ -52,7 +52,7 @@ export class UserGyakorlatService {
   }
 
   async createUserGyakorlatHistory(createHistoryDto: CreateUserGyakorlatHistoryDto) {
-    const { gyakorlat_id, user_id, weight, reps } = createHistoryDto;
+    const { gyakorlat_id, user_id, weight, reps, edzes_id } = createHistoryDto;
 
     const userGyakorlat = await this.prisma.user_Gyakorlat.findUnique({
       where: {
@@ -73,11 +73,27 @@ export class UserGyakorlatService {
       });
     }
 
+    // Check if the workout exists
+    const edzes = await this.prisma.edzes.findUnique({
+      where: { edzes_id }
+    });
+
+    if (!edzes) {
+      throw new NotFoundException(`Az edzés (ID: ${edzes_id}) nem található.`);
+    }
+
     // Tranzakcióban kezeljük a history létrehozását és a rekordok frissítését
     return this.prisma.$transaction(async (prisma) => {
       // History bejegyzés létrehozása
       const history = await prisma.user_Gyakorlat_History.create({
         data: {
+          weight,
+          reps,
+          edzes: {
+            connect: {
+              edzes_id
+            }
+          },
           user_gyakorlat: {
             connect: {
               user_id_gyakorlat_id: {
@@ -85,9 +101,7 @@ export class UserGyakorlatService {
                 gyakorlat_id
               }
             }
-          },
-          weight,
-          reps
+          }
         }
       });
 
