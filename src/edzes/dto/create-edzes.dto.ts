@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsDateString, IsArray, ValidateNested, IsOptional, IsInt, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -88,4 +88,15 @@ export class CreateEdzesDto {
   @IsOptional()
   @IsBoolean()
   isFinalized?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Sablon-e az edzés',
+    example: false,
+    required: false
+})
+
+  @IsOptional()
+  @IsBoolean()
+  isTemplate?: boolean;
+
 }

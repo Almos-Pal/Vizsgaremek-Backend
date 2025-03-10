@@ -31,7 +31,9 @@ export class EdzesService {
         edzes_neve: createEdzesDto.edzes_neve,
         datum: createEdzesDto.datum ? new Date(createEdzesDto.datum) : new Date(),
         user: { connect: { user_id: createEdzesDto.user_id } },
-        ido: createEdzesDto.ido
+        ido: createEdzesDto.ido,
+        isTemplate: createEdzesDto.isTemplate
+        
       },
       include: {
         gyakorlatok: {
@@ -104,8 +106,12 @@ export class EdzesService {
         include: {
           gyakorlatok: {
             include: {
-              gyakorlat: true,
-              szettek: true
+              gyakorlat: {
+                select: {
+                  gyakorlat_neve: true,
+                }
+              },
+              szettek: true,
             }
           }
         }
