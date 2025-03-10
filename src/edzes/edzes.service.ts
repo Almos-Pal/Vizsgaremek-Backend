@@ -1019,14 +1019,12 @@ export class EdzesService {
     query: GetEdzesekQueryDto,
     type: "week" | "month" | "halfyear" | "all"
   ) {
-    const { skip, take, page, limit, user_id } =
-      PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
     let edzesWhere = {};
     const now = new Date();
   
-
-    if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
    
+    if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
       try {
         if (!isDate(new Date(startDate))) throw new Error();
       } catch (error) {
@@ -1037,6 +1035,7 @@ export class EdzesService {
       } catch (error) {
         throw new BadRequestException("Hibás vagy nincs megadva az endDate");
       }
+  
       edzesWhere = {
         AND: {
           ...(user_id ? { user_id } : {}),
@@ -1047,15 +1046,11 @@ export class EdzesService {
         },
       };
     } else {
-     
       let dateOffset = 0;
-      if (type === "week") {
-        dateOffset = 7;
-      } else if (type === "month") {
-        dateOffset = 30;
-      } else if (type === "halfyear") {
-        dateOffset = 180;
-      }
+      if (type === "week") dateOffset = 7;
+      else if (type === "month") dateOffset = 30;
+      else if (type === "halfyear") dateOffset = 180;
+  
       if (type === "all") {
         edzesWhere = {
           ...(user_id ? { user_id } : {}),
@@ -1073,7 +1068,7 @@ export class EdzesService {
       }
     }
   
-    
+  
     const totalWeightResult = await this.db.edzes_Gyakorlat_Set.aggregate({
       _sum: { weight: true },
       where: {
@@ -1084,7 +1079,7 @@ export class EdzesService {
     });
     const totalWeight = totalWeightResult._sum.weight || 0;
   
-   
+
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
         where: edzesWhere,
@@ -1117,32 +1112,43 @@ export class EdzesService {
       this.db.edzes.count({ where: edzesWhere }),
     ]);
   
-    
+
+    const izomcsoportCounts: Record<number, number> = {};
     const enrichedEdzesek = edzesek.map((edzes) => {
-      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
-        const total_sets = gyakorlatConn.szettek.length;
-        return {
-          ...gyakorlatConn,
-          total_sets,
-        };
-      });
-      return {
-        ...edzes,
-        gyakorlatok: gyakorlatokWithTotals,
-      };
+      const gyakorlatokWithTotals = edzes.gyakorlatok
+        .map((gyakorlatConn) => {
+          const total_sets = gyakorlatConn.szettek.length;
+          if (total_sets === 0) return null; 
+  
+    
+          const gyakorlat = gyakorlatConn.gyakorlat;
+          if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
+            gyakorlat.izomcsoportok.forEach((group) => {
+              const muscleId = group.izomcsoport.izomcsoport_id;
+              izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+            });
+          } else if (gyakorlat.fo_izomcsoport) {
+            const muscleId = gyakorlat.fo_izomcsoport;
+            izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+          }
+  
+          return { ...gyakorlatConn, total_sets };
+        })
+        .filter(Boolean); 
+  
+      return { ...edzes, gyakorlatok: gyakorlatokWithTotals };
     });
   
-    
-    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
-  
     return {
-      items,
+      items: enrichedEdzesek.map(({ user_id, ...edzes }) => edzes),
       meta: {
         ...PaginationHelper.createMeta(page, limit, total),
+        izomcsoportCounts,
         totalWeight, 
       },
     };
   }
+  
   
 
 
