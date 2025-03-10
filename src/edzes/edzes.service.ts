@@ -535,7 +535,7 @@ export class EdzesService {
         gyakorlat_id: gyakorlatId,
         user_id: user_id,
         date: {
-          lt: edzesStartOfDay 
+          lt: edzesStartOfDay
         }
       },
       orderBy: {
@@ -1009,9 +1009,6 @@ export class EdzesService {
       throw new BadRequestException('Hiba történt az edzés állapotának módosítása során: ' + error.message);
     }
   }
-  
-
-
 
   async findManyByDate(
     startDate: string,
@@ -1021,12 +1018,9 @@ export class EdzesService {
   ) {
     const { skip, take, page, limit, user_id } =
       PaginationHelper.getPaginationOptions(query);
-    let edzesWhere = {};
-    const now = new Date();
+    let where = {};
   
-
     if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
-   
       try {
         if (!isDate(new Date(startDate))) throw new Error();
       } catch (error) {
@@ -1037,54 +1031,42 @@ export class EdzesService {
       } catch (error) {
         throw new BadRequestException("Hibás vagy nincs megadva az endDate");
       }
-      edzesWhere = {
+      where = {
         AND: {
           ...(user_id ? { user_id } : {}),
           datum: {
             gte: new Date(startDate),
-            lte: new Date(endDate),
-          },
-        },
+            lte: new Date(endDate)
+          }
+        }
       };
     } else {
-     
-      let dateOffset = 0;
+      let now = new Date();
+      let date = 0;
       if (type === "week") {
-        dateOffset = 7;
+        date = 7;
       } else if (type === "month") {
-        dateOffset = 30;
+        date = 30;
       } else if (type === "halfyear") {
-        dateOffset = 180;
+        date = 180;
       }
       if (type === "all") {
-        edzesWhere = {
-          ...(user_id ? { user_id } : {}),
+        where = {
+          ...(user_id ? { user_id } : {})
         };
       } else {
-        edzesWhere = {
+        where = {
           AND: {
             ...(user_id ? { user_id } : {}),
             datum: {
-              gte: new Date(now.getTime() - dateOffset * 24 * 60 * 60 * 1000),
-              lte: now,
-            },
-          },
+              gte: new Date(now.getTime() - date * 24 * 60 * 60 * 1000),
+              lte: now
+            }
+          }
         };
       }
     }
   
-    
-    const totalWeightResult = await this.db.edzes_Gyakorlat_Set.aggregate({
-      _sum: { weight: true },
-      where: {
-        edzes_gyakorlat: {
-          edzes: edzesWhere,
-        },
-      },
-    });
-    const totalWeight = totalWeightResult._sum.weight || 0;
-  
-   
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
         where: edzesWhere,
@@ -1104,6 +1086,11 @@ export class EdzesService {
               },
               szettek: {
                 orderBy: {
+                  set_szam: "asc"
+                }
+              }
+            }
+          }
                   set_szam: "asc",
                 },
               },
@@ -1111,6 +1098,8 @@ export class EdzesService {
           },
         },
         orderBy: {
+          datum: "desc"
+        }
           datum: "desc",
         },
       }),
@@ -1119,45 +1108,78 @@ export class EdzesService {
   
     
     const enrichedEdzesek = edzesek.map((edzes) => {
-      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
-        const total_sets = gyakorlatConn.szettek.length;
-        return {
-          ...gyakorlatConn,
-          total_sets,
-        };
-      });
+      const gyakorlatokWithTotals = edzes.gyakorlatok
+        .map((gyakorlatConn) => {
+          const total_sets = gyakorlatConn.szettek.length;
+  
+          if (total_sets === 0) return null; 
+  
+          return {
+            ...gyakorlatConn,
+            total_sets
+          };
+        })
+        .filter(Boolean); 
+  
       return {
         ...edzes,
         gyakorlatok: gyakorlatokWithTotals,
       };
     });
   
+   
+    const izomcsoportCounts: Record<number, number> = {};
+  
+    enrichedEdzesek.forEach((edzes) => {
+      edzes.gyakorlatok.forEach((gyakorlatConn) => {
+        const gyakorlat = gyakorlatConn.gyakorlat;
+  
+     
+        if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
+          gyakorlat.izomcsoportok.forEach((group) => {
+            const muscleId = group.izomcsoport.izomcsoport_id;
+            izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+          });
+        } else if (gyakorlat.fo_izomcsoport) {
+          const muscleId = gyakorlat.fo_izomcsoport;
+          izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
+        }
+      });
+    });
+  
+  
     
     const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
   
     return {
-      items,
+      items: enrichedEdzesek.map(({ user_id, ...edzes }) => edzes),
       meta: {
+        ...{
         ...PaginationHelper.createMeta(page, limit, total),
         totalWeight, 
       },
+        izomcsoportCounts
+      }
     };
   }
   
+  
+
+  
 
 
-  async findOneByDate(user_Id: number, date: string) {
-    try {
-      if (!isNumber(user_Id)) {
-        throw new BadRequestException("Hibás a user_id formátuma");
-      }
-      if (!isDate(new Date(date))) {
-        throw new BadRequestException("Hibás a dátum formátuma");
-      }
+    async findOneByDate(user_Id: number, date: string) {
+      try {
+        if (!isNumber(user_Id)) {
+          throw new BadRequestException("Hibás a user_id formátuma");
+        }
+        if (!isDate(new Date(date))) {
+          throw new BadRequestException("Hibás a dátum formátuma");
+        }
 
-      const givenDate = new Date(date);
-      const startDate = startOfDay(givenDate);
-      const endDate = endOfDay(givenDate);
+        const givenDate = new Date(date);
+        const startDate = startOfDay(givenDate);
+        const endDate = endOfDay(givenDate);
 
       const edzes = await this.db.edzes.findMany({
         where: {
@@ -1188,30 +1210,65 @@ export class EdzesService {
           },
         },
       });
+      const edzes = await this.db.edzes.findMany({
+        where: {
+          user_id: user_Id,
+          datum: {
+            gte: startDate,
+            lt: endDate,
+          },
+        },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: {
+                include: {
+                  izomcsoportok: {
+                    include: {
+                      izomcsoport: true,
+                    },
+                  },
+                },
+              },
+              szettek: {
+                orderBy: {
+                  set_szam: "asc",
+                },
+              },
+            },
+          },
+        },
+      });
 
-      if (edzes.length === 0) {
-        throw new NotFoundException(`Az edzés (Dátum: ${date}) nem található.`);
-      }
+        if (edzes.length === 0) {
+          throw new NotFoundException(`Az edzés (Dátum: ${date}) nem található.`);
+        }
 
-      const gyakorlatokWithHistory = await Promise.all(
-        edzes[0].gyakorlatok.map(async (gyakorlatConn) => {
-          const total_sets = gyakorlatConn.szettek.length;
+        const gyakorlatokWithHistory = await Promise.all(
+          edzes[0].gyakorlatok.map(async (gyakorlatConn) => {
+            const total_sets = gyakorlatConn.szettek.length;
 
-        const history = await this.getLatestGyakorlatHistory(
-          gyakorlatConn.gyakorlat_id,
-          edzes[0].user_id,
+          const history = await this.getLatestGyakorlatHistory(
+            gyakorlatConn.gyakorlat_id,
+            edzes[0].user_id,
 
           edzes[0].datum
+          );
+
+            return {
+              ...gyakorlatConn,
+              total_sets,
+              previous_history: history,
+            };
+          })
         );
 
-          return {
-            ...gyakorlatConn,
-            total_sets,
-            previous_history: history,
-          };
-        })
-      );
-
+      return {
+        ...edzes[0],
+        gyakorlatok: gyakorlatokWithHistory,
+      };
+    } catch (error) {
+      console.error(error);
       return {
         ...edzes[0],
         gyakorlatok: gyakorlatokWithHistory,
@@ -1222,9 +1279,12 @@ export class EdzesService {
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
 
-      throw new InternalServerErrorException("Hiba történt az edzés lekérdezésekor.");
-    }
+        throw new InternalServerErrorException("Hiba történt az edzés lekérdezésekor.");
+      }
   }
 
 async findTen(user_Id:number,gyakorlat_id:number){
@@ -1305,7 +1365,7 @@ async findTen(user_Id:number,gyakorlat_id:number){
   }
 
 
-}
+  }
 
 }
 function startOfDay(givenDate: Date): Date {
