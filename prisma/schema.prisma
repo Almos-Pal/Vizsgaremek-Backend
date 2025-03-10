@@ -88,6 +88,7 @@ model Edzes {
   edzes_id       Int                 @id @default(autoincrement())
   edzes_neve     String
   datum          DateTime            @default(now())
+  isTemplate     Boolean?            @default(false)
   user_id        Int
   ido            Int
   isFinalized    Boolean?             @default(false)

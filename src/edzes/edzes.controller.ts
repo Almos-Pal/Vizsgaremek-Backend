@@ -33,8 +33,18 @@ export class EdzesController {
     required: true,
     type: 'number'
   })
-      findTen(@Query('userId') userId: number,@Query('gyakorlat') gyakorlat: number) {
-    return this.edzesService.findTen(userId,gyakorlat);
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
+  findTen(
+    @Query('userId') userId: number,
+    @Query('gyakorlat') gyakorlat: number,
+    @Query('isTemplate') isTemplate?: boolean
+  ) {
+    return this.edzesService.findTen(userId, gyakorlat, isTemplate);
   }
 
   @Get('intervallum')
@@ -60,6 +70,12 @@ export class EdzesController {
     required: false,
     type: "week|month|halfyear|all"
   })
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
   @ApiResponse({
     status: 200,
     description: 'Az edzések sikeresen lekérve',
@@ -69,11 +85,14 @@ export class EdzesController {
     status: 404,
     description: 'Az edzések nem találhatóak'
   })
-  findManyByDate(@Query() query: GetEdzesekQueryDto, @Query('startDate') startDate?: string, @Query('endDate') endDate?: string, @Query("type") type?: "week" | "month" | "halfyear" | "all") {
+  findManyByDate(
+    @Query() query: GetEdzesekQueryDto,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query("type") type?: "week" | "month" | "halfyear" | "all"
+  ) {
     return this.edzesService.findManyByDate(startDate, endDate, query, type);
   }
-
-
 
   @Post()
   @ApiOperation({
@@ -125,7 +144,6 @@ export class EdzesController {
     return this.edzesService.addGyakorlatToEdzes(id, userId, gyakorlatDto);
   }
 
-
   @Delete(':id/gyakorlat/:gyakorlatId/:userId')
   @ApiOperation({
     summary: 'Gyakorlat törlése edzésből',
@@ -154,7 +172,6 @@ export class EdzesController {
   ) {
       return this.edzesService.deleteGyakorlatFromEdzes(id, gyakorlatId, userId)
   }
-
 
   @Post(':id/gyakorlat/:gyakorlatId/set/:userId')
   @ApiOperation({
@@ -325,8 +342,6 @@ export class EdzesController {
     }
   })
 
-
-
   @ApiResponse({
     status: 400,
     description: 'Hibás kérés - Érvénytelen felhasználó azonosító'
@@ -352,6 +367,12 @@ export class EdzesController {
     required: true,
     type: 'string'
   })
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
   @ApiResponse({
     status: 200,
     description: 'Az edzés sikeresen lekérve',
@@ -361,11 +382,13 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés nem található'
   })
-  findOneByDate(@Query('userId') userId: number, @Query('date') date: string) {
-
-    return this.edzesService.findOneByDate(userId, date);
+  findOneByDate(
+    @Query('userId') userId: number,
+    @Query('date') date: string,
+    @Query('isTemplate') isTemplate?: boolean
+  ) {
+    return this.edzesService.findOneByDate(userId, date, isTemplate);
   }
-
 
   @Get(':id')
   @ApiOperation({
@@ -434,8 +457,6 @@ export class EdzesController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.remove(id);
   }
-
-
 
   @Patch(':id/finalize/:userId')
   @ApiOperation({

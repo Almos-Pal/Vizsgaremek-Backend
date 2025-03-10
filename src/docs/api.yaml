@@ -1,5 +1,30 @@
 openapi: 3.0.0
 paths:
+  /edzes/ten:
+    get:
+      description: >-
+        Lekéri a legutóbbi 10 edzés a hozzájuk tartozó gyakorlatokkal és
+        izomcsoportokkal együtt
+      operationId: findTen
+      parameters:
+        - name: userId
+          required: true
+          in: query
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+        - name: gyakorlat
+          required: true
+          in: query
+          description: A gyakorlat id-ja
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+      summary: A legutóbbi 10 edzés
+      tags:
+        - Edzes
   /edzes/intervallum:
     get:
       description: >-
@@ -158,6 +183,35 @@ paths:
         '404':
           description: Az edzés vagy a gyakorlat nem található
       summary: Gyakorlat hozzáadása edzéshez
+      tags:
+        - Edzes
+  /edzes/{id}/gyakorlat/{gyakorlatId}/{userId}:
+    delete:
+      description: Törli a gyakorlatot az edzésből és a felhasználó történetéből
+      operationId: deleteGyakorlatFromEdzes
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Az edzés azonosítója
+          schema:
+            type: number
+        - name: gyakorlatId
+          required: true
+          in: path
+          description: A gyakorlat azonosítója
+          schema:
+            type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+      summary: Gyakorlat törlése edzésből
       tags:
         - Edzes
   /edzes/{id}/gyakorlat/{gyakorlatId}/set/{userId}:
@@ -424,10 +478,77 @@ paths:
       summary: Edzés törlése
       tags:
         - Edzes
+  /edzes/{id}/finalize/{userId}:
+    patch:
+      description: >-
+        Módosítja az edzés véglegesítésének állapotát a megadott azonosító
+        alapján
+      operationId: changeEdzesFinalizedStatus
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Az edzés azonosítója
+          schema:
+            type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Az edzés véglegesítésének állapota sikeresen módosítva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '400':
+          description: Hiba történt az edzés állapotának módosítása során
+        '404':
+          description: Az edzés nem található vagy nem tartozik a megadott felhasználóhoz
+      summary: Edzés véglegesítésének állapotának módosítása
+      tags:
+        - Edzes
   /users:
     get:
       operationId: findAll
-      parameters: []
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Page number
+          schema:
+            minimum: 1
+            default: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Number of items per page
+          schema:
+            minimum: 1
+            default: 10
+            type: number
+        - name: username
+          required: false
+          in: query
+          description: keresési feltétel felhasználónév alapján
+          schema:
+            type: string
+        - name: isAdmin
+          required: false
+          in: query
+          description: keresési feltétel isAdmin alapján
+          schema:
+            type: string
+        - name: email
+          required: false
+          in: query
+          description: keresési feltétel email alapján
+          schema:
+            type: string
       responses:
         '200':
           description: ''
@@ -488,6 +609,26 @@ paths:
           in: path
           schema:
             type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Users
+  /users/{id}/admin:
+    patch:
+      operationId: changeAdmin
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminDto'
       responses:
         '200':
           description: ''
@@ -812,6 +953,12 @@ paths:
           schema:
             default: false
             type: boolean
+        - name: search
+          required: false
+          in: query
+          description: Keresési feltétel gyakorlat neve alapján
+          schema:
+            type: string
       responses:
         '200':
           description: A gyakorlatok sikeresen lekérve
@@ -992,6 +1139,10 @@ components:
           type: number
           description: Az edzés időtartama (percben)
           example: 60
+        isFinalized:
+          type: boolean
+          description: Igaz ha az edzés befejeződött
+          example: false
         gyakorlatok:
           description: Az edzéshez tartozó gyakorlatok
           type: array
@@ -1002,6 +1153,7 @@ components:
         - edzes_neve
         - datum
         - ido
+        - isFinalized
         - gyakorlatok
     CreateEdzesDto:
       type: object
@@ -1022,6 +1174,10 @@ components:
           type: number
           description: Az edzés időtartama percben
           example: 60
+        isFinalized:
+          type: boolean
+          description: Igaz ha az edzés befejeződött
+          example: false
       required:
         - edzes_neve
         - datum
@@ -1128,20 +1284,43 @@ components:
           type: number
           description: Az edzés időtartama percben
           example: 60
+        isFinalized:
+          type: boolean
+          description: Igaz ha az edzés befejeződött
+          example: false
     UpdateUserDto:
       type: object
       properties:
+        username:
+          type: string
+          example: newusername
+          description: User name
         suly:
           type: number
           example: 80
-          description: A felhasználó a súlya
+          description: User weight
         magassag:
           type: number
           example: 180
-          description: A felhasználó a magassága
+          description: User height
+        password:
+          type: string
+          example: newpassword
+          description: User password
       required:
+        - username
         - suly
         - magassag
+        - password
+    AdminDto:
+      type: object
+      properties:
+        isAdmin:
+          type: boolean
+          example: 'true'
+          description: IsAdmin?
+      required:
+        - isAdmin
     CreateUserDto:
       type: object
       properties: {}
@@ -1455,11 +1634,16 @@ components:
           type: number
           description: Az elvégzett ismétlések száma
           example: 12
+        edzes_id:
+          type: number
+          description: Az edzés azonosítója
+          example: 1
       required:
         - user_id
         - gyakorlat_id
         - weight
         - reps
+        - edzes_id
     UserGyakorlatokResponseDto:
       type: object
       properties:

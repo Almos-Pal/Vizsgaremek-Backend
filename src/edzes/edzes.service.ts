@@ -572,12 +572,20 @@ export class EdzesService {
   }
 
   async findAll(query: GetEdzesekQueryDto) {
-    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id, isTemplate } = PaginationHelper.getPaginationOptions(query);
 
+    console.log(query.isTemplate)
     const where = {
-      ...(user_id ? { user_id } : {})
+      ...(user_id ? { user_id } : {}),
+      isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
     };
 
+    if (query.isTemplate !== undefined) {
+      console.log("kutya")
+      console.log(query.isTemplate)
+      where.isTemplate = Boolean(query.isTemplate);
+    }
+    
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
         where,
@@ -1019,14 +1027,12 @@ export class EdzesService {
     query: GetEdzesekQueryDto,
     type: "week" | "month" | "halfyear" | "all"
   ) {
-    const { skip, take, page, limit, user_id } =
+    const { skip, take, page, limit, user_id, isTemplate } =
       PaginationHelper.getPaginationOptions(query);
     let edzesWhere = {};
     const now = new Date();
   
-
     if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
-   
       try {
         if (!isDate(new Date(startDate))) throw new Error();
       } catch (error) {
@@ -1040,6 +1046,7 @@ export class EdzesService {
       edzesWhere = {
         AND: {
           ...(user_id ? { user_id } : {}),
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
           datum: {
             gte: new Date(startDate),
             lte: new Date(endDate),
@@ -1047,7 +1054,6 @@ export class EdzesService {
         },
       };
     } else {
-     
       let dateOffset = 0;
       if (type === "week") {
         dateOffset = 7;
@@ -1059,11 +1065,13 @@ export class EdzesService {
       if (type === "all") {
         edzesWhere = {
           ...(user_id ? { user_id } : {}),
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
         };
       } else {
         edzesWhere = {
           AND: {
             ...(user_id ? { user_id } : {}),
+            isTemplate: isTemplate !== undefined ? isTemplate : false,
             datum: {
               gte: new Date(now.getTime() - dateOffset * 24 * 60 * 60 * 1000),
               lte: now,
@@ -1146,7 +1154,7 @@ export class EdzesService {
   
 
 
-  async findOneByDate(user_Id: number, date: string) {
+  async findOneByDate(user_Id: number, date: string, isTemplate?: boolean) {
     try {
       if (!isNumber(user_Id)) {
         throw new BadRequestException("Hibás a user_id formátuma");
@@ -1162,6 +1170,7 @@ export class EdzesService {
       const edzes = await this.db.edzes.findMany({
         where: {
           user_id: user_Id,
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
           datum: {
             gte: startDate,
             lt: endDate,
@@ -1227,7 +1236,7 @@ export class EdzesService {
     }
   }
 
-async findTen(user_Id:number,gyakorlat_id:number){
+async findTen(user_Id:number, gyakorlat_id:number, isTemplate?: boolean) {
   try {
     if (!isNumber(user_Id)) {
       throw new BadRequestException("Hibás a user_id formátuma");
@@ -1236,6 +1245,7 @@ async findTen(user_Id:number,gyakorlat_id:number){
     const edzesek = await this.db.edzes.findMany({
       where: {
         user_id: user_Id,
+        isTemplate: isTemplate !== undefined ? isTemplate : false,
         gyakorlatok:{
           some:{
             gyakorlat:{
