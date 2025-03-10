@@ -757,6 +757,7 @@ export class EdzesService {
       }
 
       await this.db.$transaction(async (prisma) => {
+        
         // Töröljük a szetteket
         await prisma.edzes_Gyakorlat_Set.deleteMany({
           where: {
@@ -778,12 +779,12 @@ export class EdzesService {
         });
 
         // Töröljük a history bejegyzéseket
-        // await prisma.user_Gyakorlat_History.deleteMany({
-        //   where: {
-        //     user_id: userId,
-        //     gyakorlat_id: gyakorlatId
-        //   }
-        // });
+        await prisma.user_Gyakorlat_History.deleteMany({
+          where: {
+            user_id: userId,
+            gyakorlat_id: gyakorlatId
+          }
+        });
       });
 
       return { message: "Gyakorlat sikeresen törölve az edzésből" };
