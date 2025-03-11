@@ -520,8 +520,9 @@ export class EdzesController {
   })
   createFromTemplate(
     @Param('templateId', ParseIntPipe) templateId: number,
-    @Param('userId', ParseIntPipe) userId: number
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body("date") date?: string
   ) {
-    return this.edzesService.createEdzesFromTemplate(templateId, userId);
+    return this.edzesService.createEdzesFromTemplate(templateId, userId,date);
   }
 }

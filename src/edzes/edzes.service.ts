@@ -50,8 +50,12 @@ export class EdzesService {
     return result;
   }
 
-  async createEdzesFromTemplate(templateId: number, userId: number) {
+  async createEdzesFromTemplate(templateId: number, userId: number,date?:string) {
     try {
+
+      if(date && !isDate(new Date(date))){
+        throw new BadRequestException("A dátum formátuma nem megfelelő")
+      }
       // Ellenőrizzük, hogy létezik-e a felhasználó
       const user = await this.db.user.findUnique({
         where: { user_id: userId }
@@ -85,7 +89,7 @@ export class EdzesService {
       const newEdzes = await this.db.edzes.create({
         data: {
           edzes_neve: template.edzes_neve,
-          datum: new Date(),
+          datum: date?  date: new Date(),
           user: { connect: { user_id: userId } },
           ido: 0,
           isTemplate: false
