@@ -146,7 +146,7 @@ export class UserGyakorlatService {
       const [items, total] = await Promise.all([
         this.prisma.user_Gyakorlat.findMany({
           where: {
-            user_id: 2,
+            user_id: user_id,
             gyakorlat: { // Nest the filter here
               gyakorlat_neve: {
                 contains: search || "",
@@ -154,8 +154,8 @@ export class UserGyakorlatService {
               }
             }
           },
-          skip: 0,
-          take: 10,
+          skip: skip,
+          take: limit,
           orderBy: {
             personal_best: "desc"
           },
@@ -176,7 +176,7 @@ export class UserGyakorlatService {
         }),
         this.prisma.user_Gyakorlat.count({
           where: {
-            user_id: 2,
+            user_id: user_id,
             gyakorlat: { // Apply the same nested filter for counting
               gyakorlat_neve: {
                 contains: search || "",
@@ -194,7 +194,6 @@ export class UserGyakorlatService {
       };
     }
   
-    // Otherwise, include more detailed information along with history.
     const [items, total] = await Promise.all([
       this.prisma.user_Gyakorlat.findMany({
         where,
@@ -206,7 +205,7 @@ export class UserGyakorlatService {
             orderBy: {
               date: 'desc'
             },
-            take: 10 // Last 10 entries
+            take: limit 
           }
         }
       }),
