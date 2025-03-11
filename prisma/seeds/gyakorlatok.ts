@@ -50,6 +50,11 @@ async function main() {
     try {
         
         await prisma.gyakorlat_Izomcsoport.deleteMany();
+        await prisma.edzes_Gyakorlat_Set.deleteMany();
+        await prisma.user_Gyakorlat_History.deleteMany();
+        await prisma.edzes_Gyakorlat.deleteMany();
+        await prisma.edzes.deleteMany();
+        await prisma.user_Gyakorlat.deleteMany();
         await prisma.gyakorlat.deleteMany();
         
         for (const line of data) {
