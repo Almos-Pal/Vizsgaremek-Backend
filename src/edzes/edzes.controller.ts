@@ -493,4 +493,35 @@ export class EdzesController {
   ) {
     return this.edzesService.changeEdzesFinalizedStatus(edzesId, userId, finalized);
   }
+
+  @Post('template/:templateId/:userId')
+  @ApiOperation({
+    summary: 'Új edzés létrehozása sablonból',
+    description: 'Létrehoz egy új edzést egy meglévő sablon alapján'
+  })
+  @ApiParam({
+    name: 'templateId',
+    description: 'A sablon azonosítója',
+    type: 'number'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Az edzés sikeresen létrehozva a sablonból',
+    type: Edzes
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'A sablon vagy a felhasználó nem található'
+  })
+  createFromTemplate(
+    @Param('templateId', ParseIntPipe) templateId: number,
+    @Param('userId', ParseIntPipe) userId: number
+  ) {
+    return this.edzesService.createEdzesFromTemplate(templateId, userId);
+  }
 }

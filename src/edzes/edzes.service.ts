@@ -50,6 +50,86 @@ export class EdzesService {
     return result;
   }
 
+  async createEdzesFromTemplate(templateId: number, userId: number) {
+    try {
+      // Ellenőrizzük, hogy létezik-e a felhasználó
+      const user = await this.db.user.findUnique({
+        where: { user_id: userId }
+      });
+
+      if (!user) {
+        throw new NotFoundException(`A felhasználó (ID: ${userId}) nem található.`);
+      }
+
+      // Ellenőrizzük, hogy létezik-e a sablon
+      const template = await this.db.edzes.findFirst({
+        where: {
+          edzes_id: templateId,
+          isTemplate: true
+        },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: true,
+              szettek: true
+            }
+          }
+        }
+      });
+
+      if (!template) {
+        throw new NotFoundException(`A sablon (ID: ${templateId}) nem található.`);
+      }
+
+      // Létrehozzuk az új edzést a sablon alapján
+      const newEdzes = await this.db.edzes.create({
+        data: {
+          edzes_neve: template.edzes_neve,
+          datum: new Date(),
+          user: { connect: { user_id: userId } },
+          ido: 0,
+          isTemplate: false
+        }
+      });
+
+      // Hozzáadjuk a gyakorlatokat és szetteket
+      for (const gyakorlatConn of template.gyakorlatok) {
+        // Először létrehozzuk az edzes-gyakorlat kapcsolatot
+        const newEdzesGyakorlat = await this.db.edzes_Gyakorlat.create({
+          data: {
+            edzes: { connect: { edzes_id: newEdzes.edzes_id } },
+            gyakorlat: { connect: { gyakorlat_id: gyakorlatConn.gyakorlat_id } }
+          }
+        });
+
+      
+      }
+
+      // Lekérjük a létrehozott edzést az összes adatával
+      const createdEdzes = await this.db.edzes.findUnique({
+        where: { edzes_id: newEdzes.edzes_id },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: true,
+              szettek: true
+            }
+          }
+        }
+      });
+
+      // Kiszűrjük a user adatokat
+      const { user_id, ...result } = createdEdzes;
+      return result;
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Hiba történt az edzés létrehozása során: ' + error.message);
+    }
+  }
+
   async addGyakorlatToEdzes(
     edzesId: number,
     userId: number,

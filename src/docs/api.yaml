@@ -19,6 +19,12 @@ paths:
           description: A gyakorlat id-ja
           schema:
             type: number
+        - name: isTemplate
+          required: false
+          in: query
+          description: Sablon-e az edzés
+          schema:
+            type: boolean
       responses:
         '200':
           description: ''
@@ -53,9 +59,21 @@ paths:
         - name: user_id
           required: false
           in: query
-          description: Filter edzések by user ID
+          description: A felhasználó azonosítója
           schema:
             type: number
+        - name: isTemplate
+          required: false
+          in: query
+          description: Sablon-e az edzés
+          schema:
+            type: boolean
+        - name: type
+          required: false
+          in: query
+          description: típus megadás, hogy milyen időintervallumot szeretnénk lekérni
+          schema:
+            type: week|month|halfyear|all
         - name: startDate
           required: false
           in: query
@@ -68,12 +86,6 @@ paths:
           description: Az végző dátuma
           schema:
             type: string
-        - name: type
-          required: false
-          in: query
-          description: típus megadás, hogy milyen időintervallumot szeretnénk lekérni
-          schema:
-            type: week|month|halfyear|all
       responses:
         '200':
           description: Az edzések sikeresen lekérve
@@ -135,9 +147,21 @@ paths:
         - name: user_id
           required: false
           in: query
-          description: Filter edzések by user ID
+          description: A felhasználó azonosítója
           schema:
             type: number
+        - name: isTemplate
+          required: false
+          in: query
+          description: Sablon-e az edzés
+          schema:
+            type: boolean
+        - name: type
+          required: false
+          in: query
+          description: keresés típusa
+          schema:
+            type: string
       responses:
         '200':
           description: Az edzések sikeresen lekérve
@@ -395,6 +419,12 @@ paths:
           description: Az edzés dátuma
           schema:
             type: string
+        - name: isTemplate
+          required: false
+          in: query
+          description: Sablon-e az edzés
+          schema:
+            type: boolean
       responses:
         '200':
           description: Az edzés sikeresen lekérve
@@ -509,6 +539,35 @@ paths:
         '404':
           description: Az edzés nem található vagy nem tartozik a megadott felhasználóhoz
       summary: Edzés véglegesítésének állapotának módosítása
+      tags:
+        - Edzes
+  /edzes/template/{templateId}/{userId}:
+    post:
+      description: Létrehoz egy új edzést egy meglévő sablon alapján
+      operationId: createFromTemplate
+      parameters:
+        - name: templateId
+          required: true
+          in: path
+          description: A sablon azonosítója
+          schema:
+            type: number
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+      responses:
+        '201':
+          description: Az edzés sikeresen létrehozva a sablonból
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edzes'
+        '404':
+          description: A sablon vagy a felhasználó nem található
+      summary: Új edzés létrehozása sablonból
       tags:
         - Edzes
   /users:
@@ -1178,6 +1237,10 @@ components:
           type: boolean
           description: Igaz ha az edzés befejeződött
           example: false
+        isTemplate:
+          type: boolean
+          description: Sablon-e az edzés
+          example: false
       required:
         - edzes_neve
         - datum
@@ -1287,6 +1350,10 @@ components:
         isFinalized:
           type: boolean
           description: Igaz ha az edzés befejeződött
+          example: false
+        isTemplate:
+          type: boolean
+          description: Sablon-e az edzés
           example: false
     UpdateUserDto:
       type: object
