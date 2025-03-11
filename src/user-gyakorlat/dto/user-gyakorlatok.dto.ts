@@ -37,6 +37,8 @@ export class GetUserGyakorlatokQueryDto {
     })
     @IsOptional()
     search?: string;
+
+
 }
 
 export class UserGyakorlatokResponseDto implements PaginatedResponseDto<UserGyakorlat> {

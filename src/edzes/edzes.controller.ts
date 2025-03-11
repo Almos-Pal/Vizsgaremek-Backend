@@ -69,8 +69,9 @@ export class EdzesController {
     status: 404,
     description: 'Az edzések nem találhatóak'
   })
-  findManyByDate(@Query() query: GetEdzesekQueryDto, @Query('startDate') startDate?: string, @Query('endDate') endDate?: string, @Query("type") type?: "week" | "month" | "halfyear" | "all") {
-    return this.edzesService.findManyByDate(startDate, endDate, query, type);
+  findManyByDate(@Query() query: GetEdzesekQueryDto) {
+
+    return this.edzesService.findManyByDate(query);
   }
 
 

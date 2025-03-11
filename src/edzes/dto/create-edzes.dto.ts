@@ -69,6 +69,7 @@ export class CreateEdzesDto {
     example: 1
   })
   @IsInt()
+  @IsOptional()
   user_id: number;
 
   @ApiProperty({
