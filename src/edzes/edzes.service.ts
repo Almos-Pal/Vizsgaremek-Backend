@@ -700,12 +700,14 @@ export class EdzesService {
             }
           }
         },
-        orderBy: {
-          datum: 'desc'
-        }
+        orderBy: [
+          { isFavorite: 'desc'},
+          { datum: 'desc'}
+        ]
       }),
       this.db.edzes.count({ where })
     ]);
+   
 
     // Csak a szettek kiiratása adatok nélkül
     const enrichedEdzesek = edzesek.map((edzes) => {
@@ -1077,6 +1079,7 @@ export class EdzesService {
   }
 
   async changeEdzesFinalizedStatus(edzesId: number, userId: number, finalized: boolean) {
+    console.log(edzesId, userId)
     try {
       const edzes = await this.db.edzes.findUnique({
         where: {
@@ -1095,6 +1098,7 @@ export class EdzesService {
           isFinalized: finalized
         }
       });
+      
 
       // Kiszűrjük a user adatokat
       const { user_id, ...result } = updatedEdzes;
@@ -1115,20 +1119,21 @@ export class EdzesService {
           user_id: userId
         }
       });
-
+      
       if (!edzes) {
         throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
       }
-
+      
       const updatedEdzes = await this.db.edzes.update({
         where: { edzes_id: edzesId },
         data: {
-          isFinalized: favorited
+          isFavorite: favorited
         }
       });
-
+      
       // Kiszűrjük a user adatokat
       const { user_id, ...result } = updatedEdzes;
+      
       return result;
 
     } catch (error) {
