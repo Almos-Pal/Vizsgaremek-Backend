@@ -24,9 +24,7 @@ export class EdzesService {
       throw new NotFoundException(`A felhasználó (ID: ${createEdzesDto.user_id}) nem található.`);
 
     }
-    const date = createEdzesDto.datum 
-    ? new Date(createEdzesDto.datum) 
-    : new Date();
+    const date = createEdzesDto.datum ? new Date(createEdzesDto.datum) : new Date();
   
   const startOfDay = new Date(date.setHours(0, 0, 0, 0));
   const endOfDay = new Date(date.setHours(23, 59, 59, 999));
@@ -34,8 +32,8 @@ export class EdzesService {
   const edzesDate = await this.db.edzes.findMany({
     where: {
       datum: {
-        gte: startOfDay,  // Greater than or equal to start of the day
-        lt: endOfDay,      // Less than end of the day (ensures full day range)
+        gte: startOfDay,
+        lt: endOfDay,      
       },
     },
   });
