@@ -671,8 +671,7 @@ export class EdzesService {
     };
 
     if (query.isTemplate !== undefined) {
-      console.log("kutya")
-      console.log(query.isTemplate)
+      //console.log(query.isTemplate)
       where.isTemplate = Boolean(query.isTemplate);
     }
     
