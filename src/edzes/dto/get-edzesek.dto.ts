@@ -57,5 +57,9 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsBoolean()
     isTemplate?: boolean;
 
+    @IsOptional()
+    @IsBoolean()
+    isFavorite?: boolean;
+
    
 } 

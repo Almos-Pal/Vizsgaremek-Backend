@@ -1107,6 +1107,37 @@ export class EdzesService {
       throw new BadRequestException('Hiba történt az edzés állapotának módosítása során: ' + error.message);
     }
   }
+  async changeEdzesFavoriteStatus(edzesId: number, userId: number, favorited: boolean) {
+    try {
+      const edzes = await this.db.edzes.findUnique({
+        where: {
+          edzes_id: edzesId,
+          user_id: userId
+        }
+      });
+
+      if (!edzes) {
+        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
+      }
+
+      const updatedEdzes = await this.db.edzes.update({
+        where: { edzes_id: edzesId },
+        data: {
+          isFinalized: favorited
+        }
+      });
+
+      // Kiszűrjük a user adatokat
+      const { user_id, ...result } = updatedEdzes;
+      return result;
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Hiba történt az edzés állapotának módosítása során: ' + error.message);
+    }
+  }
   
 
 

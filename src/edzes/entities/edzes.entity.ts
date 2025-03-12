@@ -117,6 +117,12 @@ export class Edzes {
     @IsBoolean()
     isFinalized?: boolean;
 
+    @ApiProperty({
+        description: 'Kedvenc edzés',
+        example: false
+    })
+    isFavorite: boolean;
+
 
     @ApiProperty({
         description: 'Az edzéshez tartozó gyakorlatok',
