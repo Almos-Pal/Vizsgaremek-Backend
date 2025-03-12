@@ -34,6 +34,11 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsNumber()
     user_id?: number;
 
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    gyakorlat_id?: number;
+
     @IsString()
     @IsOptional()
     @Type(() => String)

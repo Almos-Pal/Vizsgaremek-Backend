@@ -663,10 +663,11 @@ export class EdzesService {
 
   async findAll(query: GetEdzesekQueryDto) {
     const { skip, take, page, limit, user_id, isTemplate } = PaginationHelper.getPaginationOptions(query);
-
+    const { gyakorlat_id } = query;
     console.log(query.isTemplate)
     const where = {
       ...(user_id ? { user_id } : {}),
+      ...(gyakorlat_id ? { gyakorlatok: { some: { gyakorlat_id } } } : {}),
       isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
     };
 
