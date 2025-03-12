@@ -92,6 +92,7 @@ model Edzes {
   user_id        Int
   ido            Int                  @default(0)
   isFinalized    Boolean?             @default(false)
+  isFavorite     Boolean?             @default(false)
   user           User?               @relation(fields: [user_id], references: [user_id])
   edzestervek    Edzesterv_Edzes[]   // Many-to-many relationship to Edzesterv
   gyakorlatok    Edzes_Gyakorlat[]   // Many-to-many relationship to Gyakorlat
