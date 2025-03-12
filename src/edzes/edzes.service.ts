@@ -31,7 +31,9 @@ export class EdzesService {
         edzes_neve: createEdzesDto.edzes_neve,
         datum: createEdzesDto.datum ? new Date(createEdzesDto.datum) : new Date(),
         user: { connect: { user_id: createEdzesDto.user_id } },
-        ido: createEdzesDto.ido
+        ido: createEdzesDto.ido,
+        isTemplate: createEdzesDto.isTemplate
+        
       },
       include: {
         gyakorlatok: {
@@ -46,6 +48,90 @@ export class EdzesService {
     // Kiszűrjük a user adatokat
     const { user_id, ...result } = edzes;
     return result;
+  }
+
+  async createEdzesFromTemplate(templateId: number, userId: number,date?:string) {
+    try {
+
+      if(date && !isDate(new Date(date))){
+        throw new BadRequestException("A dátum formátuma nem megfelelő")
+      }
+      // Ellenőrizzük, hogy létezik-e a felhasználó
+      const user = await this.db.user.findUnique({
+        where: { user_id: userId }
+      });
+
+      if (!user) {
+        throw new NotFoundException(`A felhasználó (ID: ${userId}) nem található.`);
+      }
+
+      // Ellenőrizzük, hogy létezik-e a sablon
+      const template = await this.db.edzes.findFirst({
+        where: {
+          edzes_id: templateId,
+          isTemplate: true
+        },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: true,
+              szettek: true
+            }
+          }
+        }
+      });
+
+      if (!template) {
+        throw new NotFoundException(`A sablon (ID: ${templateId}) nem található.`);
+      }
+
+      // Létrehozzuk az új edzést a sablon alapján
+      const newEdzes = await this.db.edzes.create({
+        data: {
+          edzes_neve: template.edzes_neve,
+          datum: date?  date: new Date(),
+          user: { connect: { user_id: userId } },
+          ido: 0,
+          isTemplate: false
+        }
+      });
+
+      // Hozzáadjuk a gyakorlatokat és szetteket
+      for (const gyakorlatConn of template.gyakorlatok) {
+        // Először létrehozzuk az edzes-gyakorlat kapcsolatot
+        const newEdzesGyakorlat = await this.db.edzes_Gyakorlat.create({
+          data: {
+            edzes: { connect: { edzes_id: newEdzes.edzes_id } },
+            gyakorlat: { connect: { gyakorlat_id: gyakorlatConn.gyakorlat_id } }
+          }
+        });
+
+      
+      }
+
+      // Lekérjük a létrehozott edzést az összes adatával
+      const createdEdzes = await this.db.edzes.findUnique({
+        where: { edzes_id: newEdzes.edzes_id },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: true,
+              szettek: true
+            }
+          }
+        }
+      });
+
+      // Kiszűrjük a user adatokat
+      const { user_id, ...result } = createdEdzes;
+      return result;
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Hiba történt az edzés létrehozása során: ' + error.message);
+    }
   }
 
   async addGyakorlatToEdzes(
@@ -104,8 +190,12 @@ export class EdzesService {
         include: {
           gyakorlatok: {
             include: {
-              gyakorlat: true,
-              szettek: true
+              gyakorlat: {
+                select: {
+                  gyakorlat_neve: true,
+                }
+              },
+              szettek: true,
             }
           }
         }
@@ -572,12 +662,19 @@ export class EdzesService {
   }
 
   async findAll(query: GetEdzesekQueryDto) {
-    const { skip, take, page, limit, user_id } = PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id, isTemplate } = PaginationHelper.getPaginationOptions(query);
 
+    console.log(query.isTemplate)
     const where = {
-      ...(user_id ? { user_id } : {})
+      ...(user_id ? { user_id } : {}),
+      isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
     };
 
+    if (query.isTemplate !== undefined) {
+      //console.log(query.isTemplate)
+      where.isTemplate = Boolean(query.isTemplate);
+    }
+    
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
         where,
@@ -749,6 +846,7 @@ export class EdzesService {
       }
 
       await this.db.$transaction(async (prisma) => {
+        
         // Töröljük a szetteket
         await prisma.edzes_Gyakorlat_Set.deleteMany({
           where: {
@@ -770,12 +868,12 @@ export class EdzesService {
         });
 
         // Töröljük a history bejegyzéseket
-        // await prisma.user_Gyakorlat_History.deleteMany({
-        //   where: {
-        //     user_id: userId,
-        //     gyakorlat_id: gyakorlatId
-        //   }
-        // });
+        await prisma.user_Gyakorlat_History.deleteMany({
+          where: {
+            user_id: userId,
+            gyakorlat_id: gyakorlatId
+          }
+        });
       });
 
       return { message: "Gyakorlat sikeresen törölve az edzésből" };
@@ -1019,12 +1117,11 @@ export class EdzesService {
     const startDate = query.startDate||"";
     const endDate = query.endDate||"";
     const type = query.type||"";
-    const { skip, take, page, limit, user_id } =
+    const { skip, take, page, limit, user_id, isTemplate } =
       PaginationHelper.getPaginationOptions(query);
     let edzesWhere = {};
     const now = new Date();
-  
-   
+     
     if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
       try {
         if (!isDate(new Date(startDate))) throw new Error();
@@ -1040,6 +1137,7 @@ export class EdzesService {
       edzesWhere = {
         AND: {
           ...(user_id ? { user_id } : {}),
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
           datum: {
             gte: new Date(startDate),
             lte: new Date(endDate),
@@ -1055,11 +1153,13 @@ export class EdzesService {
       if (type === "all") {
         edzesWhere = {
           ...(user_id ? { user_id } : {}),
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
         };
       } else {
         edzesWhere = {
           AND: {
             ...(user_id ? { user_id } : {}),
+            isTemplate: isTemplate !== undefined ? isTemplate : false,
             datum: {
               gte: new Date(now.getTime() - dateOffset * 24 * 60 * 60 * 1000),
               lte: now,
@@ -1152,8 +1252,7 @@ export class EdzesService {
   
   
 
-
-  async findOneByDate(user_Id: number, date: string) {
+  async findOneByDate(user_Id: number, date: string, isTemplate?: boolean) {
     try {
       if (!isNumber(user_Id)) {
         throw new BadRequestException("Hibás a user_id formátuma");
@@ -1169,6 +1268,7 @@ export class EdzesService {
       const edzes = await this.db.edzes.findMany({
         where: {
           user_id: user_Id,
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
           datum: {
             gte: startDate,
             lt: endDate,
@@ -1234,7 +1334,7 @@ export class EdzesService {
     }
   }
 
-async findTen(user_Id:number,gyakorlat_id:number){
+async findTen(user_Id:number, gyakorlat_id:number, isTemplate?: boolean) {
   try {
     if (!isNumber(user_Id)) {
       throw new BadRequestException("Hibás a user_id formátuma");
@@ -1243,6 +1343,7 @@ async findTen(user_Id:number,gyakorlat_id:number){
     const edzesek = await this.db.edzes.findMany({
       where: {
         user_id: user_Id,
+        isTemplate: isTemplate !== undefined ? isTemplate : false,
         gyakorlatok:{
           some:{
             gyakorlat:{

@@ -33,8 +33,18 @@ export class EdzesController {
     required: true,
     type: 'number'
   })
-      findTen(@Query('userId') userId: number,@Query('gyakorlat') gyakorlat: number) {
-    return this.edzesService.findTen(userId,gyakorlat);
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
+  findTen(
+    @Query('userId') userId: number,
+    @Query('gyakorlat') gyakorlat: number,
+    @Query('isTemplate') isTemplate?: boolean
+  ) {
+    return this.edzesService.findTen(userId, gyakorlat, isTemplate);
   }
 
   @Get('intervallum')
@@ -60,6 +70,12 @@ export class EdzesController {
     required: false,
     type: "week|month|halfyear|all"
   })
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
   @ApiResponse({
     status: 200,
     description: 'Az edzések sikeresen lekérve',
@@ -73,8 +89,6 @@ export class EdzesController {
 
     return this.edzesService.findManyByDate(query);
   }
-
-
 
   @Post()
   @ApiOperation({
@@ -126,7 +140,6 @@ export class EdzesController {
     return this.edzesService.addGyakorlatToEdzes(id, userId, gyakorlatDto);
   }
 
-
   @Delete(':id/gyakorlat/:gyakorlatId/:userId')
   @ApiOperation({
     summary: 'Gyakorlat törlése edzésből',
@@ -155,7 +168,6 @@ export class EdzesController {
   ) {
       return this.edzesService.deleteGyakorlatFromEdzes(id, gyakorlatId, userId)
   }
-
 
   @Post(':id/gyakorlat/:gyakorlatId/set/:userId')
   @ApiOperation({
@@ -326,8 +338,6 @@ export class EdzesController {
     }
   })
 
-
-
   @ApiResponse({
     status: 400,
     description: 'Hibás kérés - Érvénytelen felhasználó azonosító'
@@ -353,6 +363,12 @@ export class EdzesController {
     required: true,
     type: 'string'
   })
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
   @ApiResponse({
     status: 200,
     description: 'Az edzés sikeresen lekérve',
@@ -362,11 +378,13 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés nem található'
   })
-  findOneByDate(@Query('userId') userId: number, @Query('date') date: string) {
-
-    return this.edzesService.findOneByDate(userId, date);
+  findOneByDate(
+    @Query('userId') userId: number,
+    @Query('date') date: string,
+    @Query('isTemplate') isTemplate?: boolean
+  ) {
+    return this.edzesService.findOneByDate(userId, date, isTemplate);
   }
-
 
   @Get(':id')
   @ApiOperation({
@@ -436,8 +454,6 @@ export class EdzesController {
     return this.edzesService.remove(id);
   }
 
-
-
   @Patch(':id/finalize/:userId')
   @ApiOperation({
     summary: 'Edzés véglegesítésének állapotának módosítása',
@@ -472,5 +488,37 @@ export class EdzesController {
     @Body('finalized') finalized: boolean
   ) {
     return this.edzesService.changeEdzesFinalizedStatus(edzesId, userId, finalized);
+  }
+
+  @Post('template/:templateId/:userId')
+  @ApiOperation({
+    summary: 'Új edzés létrehozása sablonból',
+    description: 'Létrehoz egy új edzést egy meglévő sablon alapján'
+  })
+  @ApiParam({
+    name: 'templateId',
+    description: 'A sablon azonosítója',
+    type: 'number'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Az edzés sikeresen létrehozva a sablonból',
+    type: Edzes
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'A sablon vagy a felhasználó nem található'
+  })
+  createFromTemplate(
+    @Param('templateId', ParseIntPipe) templateId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body("date") date?: string
+  ) {
+    return this.edzesService.createEdzesFromTemplate(templateId, userId,date);
   }
 }

@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsInt, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsNumber, IsInt, IsString, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 export class GetEdzesekQueryDto extends PaginationQueryDto {
@@ -13,6 +13,8 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsOptional()
     page?: number = 1;
 
+
+
     @ApiProperty({
         description: 'Elemek száma oldalanként',
         required: false,
@@ -23,14 +25,13 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsOptional()
     limit?: number = 10;
 
-    @ApiProperty({
-        description: 'Filter edzések by user ID',
-        required: false,
+    @ApiPropertyOptional({
+        description: 'A felhasználó azonosítója',
         type: Number
     })
     @IsOptional()
-    @IsInt()
-    @Type(() => Number)
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     user_id?: number;
 
     @IsString()
@@ -47,4 +48,14 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsOptional()
     @Type(() => String)
     type?: "week" | "month" | "halfyear" | "all";
+
+    @ApiPropertyOptional({
+        description: 'Sablon-e az edzés',
+        type: Boolean
+    })
+    @IsOptional()
+    @IsBoolean()
+    isTemplate?: boolean;
+
+   
 } 
