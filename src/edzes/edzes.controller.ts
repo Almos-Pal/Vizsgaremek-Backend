@@ -490,41 +490,6 @@ export class EdzesController {
     return this.edzesService.changeEdzesFinalizedStatus(edzesId, userId, finalized);
   }
 
-  @Patch(':id/favorite/:userId')
-  @ApiOperation({
-    summary: 'Edzés kedvenc állapotának módosítása',
-    description: 'Kedvenccé teszi az edzést az azonosítója alapján'
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Az edzés azonosítója',
-    type: 'number'
-  })
-  @ApiParam({
-    name: 'userId',
-    description: 'A felhasználó azonosítója',
-    type: 'number'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Az edzés véglegesítésének állapota sikeresen módosítva',
-    type: Edzes
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Az edzés nem található vagy nem tartozik a megadott felhasználóhoz'
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Hiba történt az edzés állapotának módosítása során'
-  })
-  changeEdzesFavoriteStatus(
-    @Param('id', ParseIntPipe) edzesId: number,
-    @Param('userId', ParseIntPipe) userId: number,
-    @Body('favorite') favorited: boolean
-  ) {
-    return this.edzesService.changeEdzesFavoriteStatus(edzesId, userId, favorited);
-  }
   @Post('template/:templateId/:userId')
   @ApiOperation({
     summary: 'Új edzés létrehozása sablonból',
