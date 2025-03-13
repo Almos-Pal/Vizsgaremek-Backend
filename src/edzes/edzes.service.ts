@@ -25,7 +25,10 @@ export class EdzesService {
 
     }
     const date = createEdzesDto.datum ? new Date(createEdzesDto.datum) : new Date();
-  
+
+
+    if(!createEdzesDto.isTemplate){
+
   const startOfDay = new Date(date.setHours(0, 0, 0, 0));
   const endOfDay = new Date(date.setHours(23, 59, 59, 999));
   
@@ -39,7 +42,7 @@ export class EdzesService {
   });
     if(edzesDate.length > 0){
       throw new BadRequestException("Ezen a napon már van edzés")
-    }
+    }}
 
     // Létrehozzuk az edzést
     const edzes = await this.db.edzes.create({
