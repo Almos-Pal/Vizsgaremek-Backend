@@ -1416,6 +1416,89 @@ async findTen(user_Id:number, gyakorlat_id:number, isTemplate?: boolean) {
 
 }
 
+async getCurrentWeekEdzesek(userId: number, isTemplate?: boolean) {
+  try {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); 
+    const startOfWeek = new Date(now);
+    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; 
+    startOfWeek.setDate(now.getDate() + daysToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+
+    const where = {
+      user_id: userId,
+      isTemplate: isTemplate !== undefined ? isTemplate : false,
+      datum: {
+        gte: startOfWeek,
+        lte: endOfWeek   
+      }
+    };
+    
+
+    const edzesek = await this.db.edzes.findMany({
+      where,
+      include: {
+        gyakorlatok: {
+          include: {
+            gyakorlat: {
+              include: {
+                izomcsoportok: {
+                  include: {
+                    izomcsoport: true
+                  }
+                }
+              }
+            },
+            szettek: {
+              orderBy: {
+                set_szam: 'asc'
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        datum: 'asc'
+      }
+    });
+
+    // Collect unique izomcsoportok and fo_izomcsoportok
+    const izomcsoportSet = new Set<number>();
+    const foIzomcsoportSet = new Set<number>();
+
+    edzesek.forEach(edzes => {
+      edzes.gyakorlatok.forEach(gyakorlatConn => {
+        const gyakorlat = gyakorlatConn.gyakorlat;
+
+        if (gyakorlat.fo_izomcsoport) {
+          foIzomcsoportSet.add(gyakorlat.fo_izomcsoport);
+        }
+
+        gyakorlat.izomcsoportok.forEach(conn => {
+          izomcsoportSet.add(conn.izomcsoport.izomcsoport_id);
+        });
+      });
+    });
+
+    // Remove user_id from response
+    const formattedEdzesek = edzesek.map(({ user_id, ...edzes }) => edzes);
+
+    return {
+      edzesek: formattedEdzesek,
+      izomcsoportok: Array.from(izomcsoportSet),
+      fo_izomcsoportok: Array.from(foIzomcsoportSet)
+    };
+
+  } catch (error) {
+    throw new BadRequestException('Hiba történt a heti edzések lekérése során: ' + error.message);
+  }
+}
+
 }
 function startOfDay(givenDate: Date): Date {
   const start = new Date(givenDate);

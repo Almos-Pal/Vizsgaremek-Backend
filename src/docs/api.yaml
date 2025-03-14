@@ -74,16 +74,16 @@ paths:
           description: típus megadás, hogy milyen időintervallumot szeretnénk lekérni
           schema:
             type: week|month|halfyear|all
-        - name: startDate
-          required: false
-          in: query
-          description: A kezdő dátum
-          schema:
-            type: string
         - name: endDate
           required: false
           in: query
           description: Az végző dátuma
+          schema:
+            type: string
+        - name: startDate
+          required: false
+          in: query
+          description: A kezdő dátum
           schema:
             type: string
       responses:
@@ -156,12 +156,6 @@ paths:
           description: Sablon-e az edzés
           schema:
             type: boolean
-        - name: type
-          required: false
-          in: query
-          description: keresés típusa
-          schema:
-            type: string
       responses:
         '200':
           description: Az edzések sikeresen lekérve
@@ -568,6 +562,53 @@ paths:
         '404':
           description: A sablon vagy a felhasználó nem található
       summary: Új edzés létrehozása sablonból
+      tags:
+        - Edzes
+  /edzes/current-week/{userId}:
+    get:
+      description: >-
+        Lekéri az aktuális hét összes edzését és a hozzájuk tartozó
+        izomcsoportokat
+      operationId: getCurrentWeekEdzesek
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          description: A felhasználó azonosítója
+          schema:
+            type: number
+        - name: isTemplate
+          required: false
+          in: query
+          description: Sablon-e az edzés
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Az edzések sikeresen lekérve
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  edzesek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Edzes'
+                    description: A hét edzései
+                  izomcsoportok:
+                    type: array
+                    items:
+                      type: number
+                    description: Az érintett izomcsoportok azonosítói
+                  fo_izomcsoportok:
+                    type: array
+                    items:
+                      type: number
+                    description: Az érintett fő izomcsoportok azonosítói
+        '400':
+          description: Hibás kérés
+      summary: Aktuális heti edzések lekérése
       tags:
         - Edzes
   /users:
