@@ -1485,11 +1485,28 @@ async getCurrentWeekEdzesek(userId: number, isTemplate?: boolean) {
       });
     });
 
+
+    const enrichedEdzesek = edzesek.map((edzes) => {
+      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
+        const total_sets = gyakorlatConn.szettek.length;
+        return {
+          ...gyakorlatConn,
+          total_sets
+        };
+      });
+
+      return {
+        ...edzes,
+        gyakorlatok: gyakorlatokWithTotals
+      };
+    });
+
+    // Kiszűrjük a user adatokat
+    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
     // Remove user_id from response
-    const formattedEdzesek = edzesek.map(({ user_id, ...edzes }) => edzes);
 
     return {
-      edzesek: formattedEdzesek,
+      edzesek: items,
       izomcsoportok: Array.from(izomcsoportSet),
       fo_izomcsoportok: Array.from(foIzomcsoportSet)
     };
