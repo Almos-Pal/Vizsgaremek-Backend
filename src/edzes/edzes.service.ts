@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, ForbiddenException, HttpStatus, HttpException } from '@nestjs/common';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -41,7 +41,7 @@ export class EdzesService {
     },
   });
     if(edzesDate.length > 0){
-      throw new BadRequestException("Ezen a napon már van edzés")
+      throw new ConflictException("Ezen a napon már van edzés")
     }}
 
     // Létrehozzuk az edzést
@@ -84,7 +84,8 @@ export class EdzesService {
         },
       });
         if(edzesDate.length > 0){
-          throw new BadRequestException("Ezen a napon már van edzés")
+          
+          throw new ConflictException("Ezen a napon már van edzés")
         }
     
 
@@ -163,6 +164,9 @@ export class EdzesService {
 
     } catch (error) {
       if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error instanceof ConflictException) {
         throw error;
       }
       throw new BadRequestException('Hiba történt az edzés létrehozása során: ' + error.message);
