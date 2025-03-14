@@ -71,6 +71,22 @@ export class EdzesService {
 
   async createEdzesFromTemplate(templateId: number, userId: number,date?:string) {
     try {
+      const dateInputOrToday = new Date(date||new Date());
+      const startOfDay = new Date(dateInputOrToday.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(dateInputOrToday.setHours(23, 59, 59, 999));
+      
+      const edzesDate = await this.db.edzes.findMany({
+        where: {
+          datum: {
+            gte: startOfDay,
+            lt: endOfDay,      
+          },
+        },
+      });
+        if(edzesDate.length > 0){
+          throw new BadRequestException("Ezen a napon már van edzés")
+        }
+    
 
       if(date && !isDate(new Date(date))){
         throw new BadRequestException("A dátum formátuma nem megfelelő")
