@@ -61,5 +61,9 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsBoolean()
     isFavorite?: boolean;
 
+    @IsString()
+    @IsOptional()
+    @Type(() => String)
+    orderBy?: "byFavorite"|"asc"|"desc";
    
 } 
