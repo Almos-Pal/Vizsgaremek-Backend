@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, ForbiddenException, HttpStatus, HttpException } from '@nestjs/common';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -24,6 +24,25 @@ export class EdzesService {
       throw new NotFoundException(`A felhasználó (ID: ${createEdzesDto.user_id}) nem található.`);
 
     }
+    const date = createEdzesDto.datum ? new Date(createEdzesDto.datum) : new Date();
+
+
+    if(!createEdzesDto.isTemplate){
+
+  const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+  
+  const edzesDate = await this.db.edzes.findMany({
+    where: {
+      datum: {
+        gte: startOfDay,
+        lt: endOfDay,      
+      },
+    },
+  });
+    if(edzesDate.length > 0){
+      throw new ConflictException("Ezen a napon már van edzés")
+    }}
 
     // Létrehozzuk az edzést
     const edzes = await this.db.edzes.create({
@@ -52,6 +71,23 @@ export class EdzesService {
 
   async createEdzesFromTemplate(templateId: number, userId: number, date?: string) {
     try {
+      const dateInputOrToday = new Date(date||new Date());
+      const startOfDay = new Date(dateInputOrToday.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(dateInputOrToday.setHours(23, 59, 59, 999));
+      
+      const edzesDate = await this.db.edzes.findMany({
+        where: {
+          datum: {
+            gte: startOfDay,
+            lt: endOfDay,      
+          },
+        },
+      });
+        if(edzesDate.length > 0){
+          
+          throw new ConflictException("Ezen a napon már van edzés")
+        }
+    
 
       if (date && !isDate(new Date(date))) {
         throw new BadRequestException("A dátum formátuma nem megfelelő")
@@ -128,6 +164,9 @@ export class EdzesService {
 
     } catch (error) {
       if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error instanceof ConflictException) {
         throw error;
       }
       throw new BadRequestException('Hiba történt az edzés létrehozása során: ' + error.message);

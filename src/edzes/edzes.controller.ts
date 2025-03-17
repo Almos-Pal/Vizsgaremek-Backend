@@ -514,6 +514,10 @@ export class EdzesController {
     status: 404,
     description: 'A sablon vagy a felhasználó nem található'
   })
+  @ApiResponse({
+    status: 409,
+    description: 'Az adott napon már létezik edzés'
+  })
   createFromTemplate(
     @Param('templateId', ParseIntPipe) templateId: number,
     @Param('userId', ParseIntPipe) userId: number,

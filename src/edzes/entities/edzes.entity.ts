@@ -117,6 +117,14 @@ export class Edzes {
     @IsBoolean()
     isFinalized?: boolean;
 
+    @ApiProperty({
+        description: 'Igaz ha az edzés sablon',
+        example: false,
+    })
+    @IsBoolean()
+    isTemplate?: boolean;
+
+
 
     @ApiProperty({
         description: 'Az edzéshez tartozó gyakorlatok',
