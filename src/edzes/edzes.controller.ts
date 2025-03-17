@@ -525,4 +525,57 @@ export class EdzesController {
   ) {
     return this.edzesService.createEdzesFromTemplate(templateId, userId,date);
   }
+
+  @Get('current-week/:userId')
+  @ApiOperation({
+    summary: 'Aktuális heti edzések lekérése',
+    description: 'Lekéri az aktuális hét összes edzését és a hozzájuk tartozó izomcsoportokat'
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'A felhasználó azonosítója',
+    type: 'number'
+  })
+  @ApiQuery({
+    name: 'isTemplate',
+    description: 'Sablon-e az edzés',
+    required: false,
+    type: 'boolean'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Az edzések sikeresen lekérve',
+    schema: {
+      type: 'object',
+      properties: {
+        edzesek: {
+          type: 'array',
+          items: {
+            $ref: '#/components/schemas/Edzes' // Használjuk a $ref-et
+          },
+          description: 'A hét edzései'
+        },
+        izomcsoportok: {
+          type: 'array',
+          items: { type: 'number' },
+          description: 'Az érintett izomcsoportok azonosítói'
+        },
+        fo_izomcsoportok: {
+          type: 'array',
+          items: { type: 'number' },
+          description: 'Az érintett fő izomcsoportok azonosítói'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Hibás kérés'
+  })
+  getCurrentWeekEdzesek(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('isTemplate') isTemplate?: boolean
+  ) {
+    return this.edzesService.getCurrentWeekEdzesek(userId, isTemplate);
+  }
 }
