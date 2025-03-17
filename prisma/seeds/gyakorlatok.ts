@@ -21,7 +21,7 @@ interface Gyak {
     force: string;
     level: string;
     mechanic: string;
-    primaryMuscle: number;
+    primaryMuscle: string;
     secondaryMuscle: string;
     images: string;
     id: string;
@@ -58,7 +58,7 @@ async function main() {
         await prisma.gyakorlat.deleteMany();
         
         for (const line of data) {
-            console.log(line.secondaryMuscle.substring(1,line.secondaryMuscle.length-1).split(';').map(Number));
+            //console.log(line.secondaryMuscle.substring(1,line.secondaryMuscle.length-1).split(';').map(Number));
             try {
                 // Create the gyakorlat first and get its ID
                 const createdGyakorlat = await prisma.gyakorlat.create({
@@ -67,7 +67,7 @@ async function main() {
                         eszkoz: line.equipment,
                         gyakorlat_leiras: line.instructions,
                         user_id: 0,
-                        fo_izomcsoport: parseInt(line.primaryMuscle[1]),
+                        fo_izomcsoport: parseInt(line.primaryMuscle.replace(/\D/g, "")),
                    }
                 });
 
@@ -75,7 +75,7 @@ async function main() {
                 await prisma.gyakorlat_Izomcsoport.create({
                     data: {
                         gyakorlat_id: createdGyakorlat.gyakorlat_id,
-                        izomcsoport_id: parseInt(line.primaryMuscle[1])    
+                        izomcsoport_id: parseInt(line.primaryMuscle.replace(/\D/g, ""))    
                 }});
 
                 // Create secondary muscle group connections using the new ID
@@ -89,10 +89,10 @@ async function main() {
                                 }
                             });
                         } catch {
-                            console.error(`Létező elem:`, createdGyakorlat.gyakorlat_id, id);
+                           // console.error(`Létező elem:`, createdGyakorlat.gyakorlat_id, id);
                         }
                     } else {
-                        console.log('No secondary muscle');
+                      //  console.log('No secondary muscle');
                     }
                 }
             } catch (error) {
