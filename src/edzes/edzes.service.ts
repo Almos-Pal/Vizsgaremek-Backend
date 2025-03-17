@@ -33,7 +33,7 @@ export class EdzesService {
         user: { connect: { user_id: createEdzesDto.user_id } },
         ido: createEdzesDto.ido,
         isTemplate: createEdzesDto.isTemplate
-        
+
       },
       include: {
         gyakorlatok: {
@@ -50,10 +50,10 @@ export class EdzesService {
     return result;
   }
 
-  async createEdzesFromTemplate(templateId: number, userId: number,date?:string) {
+  async createEdzesFromTemplate(templateId: number, userId: number, date?: string) {
     try {
 
-      if(date && !isDate(new Date(date))){
+      if (date && !isDate(new Date(date))) {
         throw new BadRequestException("A dátum formátuma nem megfelelő")
       }
       // Ellenőrizzük, hogy létezik-e a felhasználó
@@ -89,7 +89,7 @@ export class EdzesService {
       const newEdzes = await this.db.edzes.create({
         data: {
           edzes_neve: template.edzes_neve,
-          datum: date?  date: new Date(),
+          datum: date ? date : new Date(),
           user: { connect: { user_id: userId } },
           ido: 0,
           isTemplate: false
@@ -106,7 +106,7 @@ export class EdzesService {
           }
         });
 
-      
+
       }
 
       // Lekérjük a létrehozott edzést az összes adatával
@@ -625,7 +625,7 @@ export class EdzesService {
         gyakorlat_id: gyakorlatId,
         user_id: user_id,
         date: {
-          lt: edzesStartOfDay 
+          lt: edzesStartOfDay
         }
       },
       orderBy: {
@@ -664,7 +664,7 @@ export class EdzesService {
   async findAll(query: GetEdzesekQueryDto) {
     const { skip, take, page, limit, user_id, isTemplate } = PaginationHelper.getPaginationOptions(query);
     const { gyakorlat_id } = query;
-  
+
     const where = {
       ...(user_id ? { user_id } : {}),
       ...(gyakorlat_id ? { gyakorlatok: { some: { gyakorlat_id } } } : {}),
@@ -675,7 +675,7 @@ export class EdzesService {
       //console.log(query.isTemplate)
       where.isTemplate = Boolean(query.isTemplate);
     }
-    
+
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
         where,
@@ -756,7 +756,7 @@ export class EdzesService {
             }
           }
         }
-        
+
       }
     });
 
@@ -848,7 +848,7 @@ export class EdzesService {
       }
 
       await this.db.$transaction(async (prisma) => {
-        
+
         // Töröljük a szetteket
         await prisma.edzes_Gyakorlat_Set.deleteMany({
           where: {
@@ -933,19 +933,30 @@ export class EdzesService {
 
         // Update total_sets count for each gyakorlat
         for (const gyakorlat of edzes.gyakorlatok) {
-          await prisma.user_Gyakorlat.update({
+          const record = await prisma.user_Gyakorlat.findUnique({
             where: {
               user_id_gyakorlat_id: {
                 user_id: edzes.user_id,
-                gyakorlat_id: gyakorlat.gyakorlat_id
-              }
+                gyakorlat_id: gyakorlat.gyakorlat_id,
+              },
             },
-            data: {
-              total_sets: {
-                decrement: gyakorlat.szettek.length
-              }
-            }
           });
+
+          if (record) {
+            await prisma.user_Gyakorlat.update({
+              where: {
+                user_id_gyakorlat_id: {
+                  user_id: edzes.user_id,
+                  gyakorlat_id: gyakorlat.gyakorlat_id,
+                },
+              },
+              data: {
+                total_sets: {
+                  decrement: gyakorlat.szettek.length,
+                },
+              },
+            });
+          }
         }
 
         // Delete edzes-gyakorlat connections
@@ -1109,21 +1120,21 @@ export class EdzesService {
       throw new BadRequestException('Hiba történt az edzés állapotának módosítása során: ' + error.message);
     }
   }
-  
+
 
 
 
   async findManyByDate(
     query: GetEdzesekQueryDto,
   ) {
-    const startDate = query.startDate||"";
-    const endDate = query.endDate||"";
-    const type = query.type||"";
+    const startDate = query.startDate || "";
+    const endDate = query.endDate || "";
+    const type = query.type || "";
     const { skip, take, page, limit, user_id, isTemplate } =
       PaginationHelper.getPaginationOptions(query);
     let edzesWhere = {};
     const now = new Date();
-     
+
     if (!(type === "week" || type === "month" || type === "halfyear" || type === "all")) {
       try {
         if (!isDate(new Date(startDate))) throw new Error();
@@ -1135,7 +1146,7 @@ export class EdzesService {
       } catch (error) {
         throw new BadRequestException("Hibás vagy nincs megadva az endDate");
       }
-  
+
       edzesWhere = {
         AND: {
           ...(user_id ? { user_id } : {}),
@@ -1151,7 +1162,7 @@ export class EdzesService {
       if (type === "week") dateOffset = 7;
       else if (type === "month") dateOffset = 30;
       else if (type === "halfyear") dateOffset = 180;
-  
+
       if (type === "all") {
         edzesWhere = {
           ...(user_id ? { user_id } : {}),
@@ -1170,8 +1181,8 @@ export class EdzesService {
         };
       }
     }
-  
-  
+
+
     const totalWeightResult = await this.db.edzes_Gyakorlat_Set.aggregate({
       _sum: { weight: true },
       where: {
@@ -1181,7 +1192,7 @@ export class EdzesService {
       },
     });
     const totalWeight = totalWeightResult._sum.weight || 0;
-  
+
 
     const [edzesek, total] = await Promise.all([
       this.db.edzes.findMany({
@@ -1214,16 +1225,16 @@ export class EdzesService {
       }),
       this.db.edzes.count({ where: edzesWhere }),
     ]);
-  
+
 
     const izomcsoportCounts: Record<number, number> = {};
     const enrichedEdzesek = edzesek.map((edzes) => {
       const gyakorlatokWithTotals = edzes.gyakorlatok
         .map((gyakorlatConn) => {
           const total_sets = gyakorlatConn.szettek.length;
-          if (total_sets === 0) return null; 
-  
-    
+          if (total_sets === 0) return null;
+
+
           const gyakorlat = gyakorlatConn.gyakorlat;
           if (gyakorlat.izomcsoportok && gyakorlat.izomcsoportok.length > 0) {
             gyakorlat.izomcsoportok.forEach((group) => {
@@ -1234,25 +1245,25 @@ export class EdzesService {
             const muscleId = gyakorlat.fo_izomcsoport;
             izomcsoportCounts[muscleId] = (izomcsoportCounts[muscleId] || 0) + 1;
           }
-  
+
           return { ...gyakorlatConn, total_sets };
         })
-        .filter(Boolean); 
-  
+        .filter(Boolean);
+
       return { ...edzes, gyakorlatok: gyakorlatokWithTotals };
     });
-  
+
     return {
       items: enrichedEdzesek.map(({ user_id, ...edzes }) => edzes),
       meta: {
         ...PaginationHelper.createMeta(page, limit, total),
         izomcsoportCounts,
-        totalWeight, 
+        totalWeight,
       },
     };
   }
-  
-  
+
+
 
   async findOneByDate(user_Id: number, date: string, isTemplate?: boolean) {
     try {
@@ -1306,12 +1317,12 @@ export class EdzesService {
         edzes[0].gyakorlatok.map(async (gyakorlatConn) => {
           const total_sets = gyakorlatConn.szettek.length;
 
-        const history = await this.getLatestGyakorlatHistory(
-          gyakorlatConn.gyakorlat_id,
-          edzes[0].user_id,
+          const history = await this.getLatestGyakorlatHistory(
+            gyakorlatConn.gyakorlat_id,
+            edzes[0].user_id,
 
-          edzes[0].datum
-        );
+            edzes[0].datum
+          );
 
           return {
             ...gyakorlatConn,
@@ -1336,86 +1347,87 @@ export class EdzesService {
     }
   }
 
-async findTen(user_Id:number, gyakorlat_id:number, isTemplate?: boolean) {
-  try {
-    if (!isNumber(user_Id)) {
-      throw new BadRequestException("Hibás a user_id formátuma");
-    }
+  async findTen(user_Id: number, gyakorlat_id: number, isTemplate?: boolean) {
+    try {
+      if (!isNumber(user_Id)) {
+        throw new BadRequestException("Hibás a user_id formátuma");
+      }
 
-    const edzesek = await this.db.edzes.findMany({
-      where: {
-        user_id: user_Id,
-        isTemplate: isTemplate !== undefined ? isTemplate : false,
-        gyakorlatok:{
-          some:{
-            gyakorlat:{
-              gyakorlat_id:gyakorlat_id
+      const edzesek = await this.db.edzes.findMany({
+        where: {
+          user_id: user_Id,
+          isTemplate: isTemplate !== undefined ? isTemplate : false,
+          gyakorlatok: {
+            some: {
+              gyakorlat: {
+                gyakorlat_id: gyakorlat_id
+              }
             }
           }
-        }
-      },
-      include: {
-        gyakorlatok: {
-          include: {
-            gyakorlat: {              
-              include: {
-                izomcsoportok: {
-                  include: {
-                    izomcsoport: true,
+        },
+        include: {
+          gyakorlatok: {
+            include: {
+              gyakorlat: {
+                include: {
+                  izomcsoportok: {
+                    include: {
+                      izomcsoport: true,
+                    },
                   },
                 },
               },
-            },
-            szettek: {
-              orderBy: {
-                set_szam: "asc",
+              szettek: {
+                orderBy: {
+                  set_szam: "asc",
+                },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    if (edzesek.length === 0) {
-      throw new NotFoundException(`Az edzés nem található.`);
-    }
-
-    
-          const sortedEdzesek = edzesek.sort((a, b) => {
-            return b.datum.getTime() - a.datum.getTime();});
-          
+      if (edzesek.length === 0) {
+        throw new NotFoundException(`Az edzés nem található.`);
+      }
 
 
-    const enrichedEdzesek = sortedEdzesek.slice(0,10).map((edzes) => {
-      const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
-        const total_sets = gyakorlatConn.szettek.length;
+      const sortedEdzesek = edzesek.sort((a, b) => {
+        return b.datum.getTime() - a.datum.getTime();
+      });
+
+
+
+      const enrichedEdzesek = sortedEdzesek.slice(0, 10).map((edzes) => {
+        const gyakorlatokWithTotals = edzes.gyakorlatok.map((gyakorlatConn) => {
+          const total_sets = gyakorlatConn.szettek.length;
+          return {
+            ...gyakorlatConn,
+            total_sets
+          };
+        });
         return {
-          ...gyakorlatConn,
-          total_sets
+          ...edzes,
+          gyakorlatok: gyakorlatokWithTotals
         };
       });
-     return {
-        ...edzes,
-        gyakorlatok: gyakorlatokWithTotals
-      };
-    });
-    const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
+      const items = enrichedEdzesek.map(({ user_id, ...edzes }) => edzes);
 
 
-    return items;
+      return items;
 
-  } catch (error) {
-    console.error(error); 
+    } catch (error) {
+      console.error(error);
 
-    if (error instanceof BadRequestException || error instanceof NotFoundException) {
-      throw error; 
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException("Hiba történt az edzés lekérdezésekor.");
     }
 
-    throw new InternalServerErrorException("Hiba történt az edzés lekérdezésekor.");
+
   }
-
-
-}
 
 }
 function startOfDay(givenDate: Date): Date {
