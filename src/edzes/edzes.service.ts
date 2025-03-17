@@ -34,6 +34,7 @@ export class EdzesService {
   
   const edzesDate = await this.db.edzes.findMany({
     where: {
+      user_id: createEdzesDto.user_id,
       datum: {
         gte: startOfDay,
         lt: endOfDay,      
