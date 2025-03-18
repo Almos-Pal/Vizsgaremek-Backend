@@ -704,12 +704,39 @@ export class EdzesService {
   }
 
   async findAll(query: GetEdzesekQueryDto) {
-    const { skip, take, page, limit, user_id, isTemplate } = PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id, isTemplate, favoriteExercises } = PaginationHelper.getPaginationOptions(query);
+    let order 
+    if(query.orderBy === "byFavorite"){
+      order = [
+        {isFavorite: 'desc'},
+        {datum: 'desc'}
+      ]
+    }
+    else if(query.orderBy === "asc"){
+      order = {
+        datum: 'asc'
+      }
+    }
+    else if(query.orderBy === "desc"){
+      order = {
+        datum: 'desc'
+      }
+    }
+    else{
+      order = {
+        datum: 'desc'
+      }
+    }
+
+
+
+
     const { gyakorlat_id } = query;
 
     const where = {
       ...(user_id ? { user_id } : {}),
       ...(gyakorlat_id ? { gyakorlatok: { some: { gyakorlat_id } } } : {}),
+      isFavorite: favoriteExercises,
       isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
     };
 
@@ -743,12 +770,11 @@ export class EdzesService {
             }
           }
         },
-        orderBy: {
-          datum: 'desc'
-        }
+        orderBy: order
       }),
       this.db.edzes.count({ where })
     ]);
+   
 
     // Csak a szettek kiiratása adatok nélkül
     const enrichedEdzesek = edzesek.map((edzes) => {
@@ -850,7 +876,8 @@ export class EdzesService {
       data: {
         edzes_neve: updateEdzesDto.edzes_neve,
         datum: updateEdzesDto.datum ? new Date(updateEdzesDto.datum) : undefined,
-        ido: updateEdzesDto.ido
+        ido: updateEdzesDto.ido,
+        isFavorite: updateEdzesDto.isFavorite
       },
       include: {
         gyakorlatok: {
@@ -861,6 +888,9 @@ export class EdzesService {
         }
       }
     });
+
+         
+
 
     // Kiszűrjük a user adatokat
     const { user_id, ...result } = updatedEdzes;
@@ -1132,6 +1162,7 @@ export class EdzesService {
   }
 
   async changeEdzesFinalizedStatus(edzesId: number, userId: number, finalized: boolean) {
+    console.log(edzesId, userId)
     try {
       const edzes = await this.db.edzes.findUnique({
         where: {
@@ -1150,6 +1181,7 @@ export class EdzesService {
           isFinalized: finalized
         }
       });
+      
 
       // Kiszűrjük a user adatokat
       const { user_id, ...result } = updatedEdzes;

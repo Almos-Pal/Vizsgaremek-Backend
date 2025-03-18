@@ -124,6 +124,12 @@ export class Edzes {
     @IsBoolean()
     isTemplate?: boolean;
 
+    @ApiProperty({
+
+        description: 'Kedvenc edzés',
+        example: false
+    })
+    isFavorite: boolean;
 
 
     @ApiProperty({
