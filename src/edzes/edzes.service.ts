@@ -728,17 +728,26 @@ export class EdzesService {
       }
     }
 
-
-
-
     const { gyakorlat_id } = query;
 
-    const where = {
-      ...(user_id ? { user_id } : {}),
-      ...(gyakorlat_id ? { gyakorlatok: { some: { gyakorlat_id } } } : {}),
-      isFavorite: favoriteExercises,
-      isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
-    };
+    let where
+if(favoriteExercises){
+   where = {
+    ...(user_id ? { user_id } : {}),
+    isFavorite: true,
+    ...(gyakorlat_id ? { gyakorlatok: { some: { gyakorlat_id } } } : {}),
+
+    isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
+  };
+}
+else{
+   where = {
+    ...(user_id ? { user_id } : {}),
+    ...(gyakorlat_id ? { gyakorlatok: { some: { gyakorlat_id } } } : {}),
+
+    isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
+  };
+}
 
     if (query.isTemplate !== undefined) {
       //console.log(query.isTemplate)
