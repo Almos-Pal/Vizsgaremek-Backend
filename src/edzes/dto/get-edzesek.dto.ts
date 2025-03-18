@@ -25,6 +25,15 @@ export class GetEdzesekQueryDto extends PaginationQueryDto {
     @IsOptional()
     limit?: number = 10;
 
+
+    @ApiPropertyOptional({
+        description: 'Kedvenc edzés',
+        required: false,
+        default: false
+    })
+    @IsOptional()
+    favoriteExercises?: boolean = false;
+
     @ApiPropertyOptional({
         description: 'A felhasználó azonosítója',
         type: Number

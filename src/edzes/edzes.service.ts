@@ -662,7 +662,7 @@ export class EdzesService {
   }
 
   async findAll(query: GetEdzesekQueryDto) {
-    const { skip, take, page, limit, user_id, isTemplate } = PaginationHelper.getPaginationOptions(query);
+    const { skip, take, page, limit, user_id, isTemplate, favoriteExercises } = PaginationHelper.getPaginationOptions(query);
     let order 
     if(query.orderBy === "byFavorite"){
       order = [
@@ -685,11 +685,20 @@ export class EdzesService {
         datum: 'desc'
       }
     }
-
-    const where = {
-      ...(user_id ? { user_id } : {}),
-      isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
-    };
+    let where
+if(favoriteExercises){
+   where = {
+    ...(user_id ? { user_id } : {}),
+    isFavorite: true,
+    isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
+  };
+}
+else{
+   where = {
+    ...(user_id ? { user_id } : {}),
+    isTemplate: isTemplate !== undefined ? isTemplate : false // Default to false if not specified
+  };
+}
 
     if (query.isTemplate !== undefined) {
       //console.log(query.isTemplate)

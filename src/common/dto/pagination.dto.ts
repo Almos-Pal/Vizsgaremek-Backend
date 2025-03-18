@@ -1,4 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 export class PaginationMetaDto {
     @ApiProperty({
@@ -24,6 +25,13 @@ export class PaginationMetaDto {
         description: 'Összes oldal száma'
     })
     totalPages: number;
+
+    @ApiPropertyOptional({
+        example: false,
+        description: 'kedvenc edzések'
+    })
+    @IsOptional()
+    favoriteExercises:boolean
 }
 
 export interface PaginatedResponseDto<T> {
