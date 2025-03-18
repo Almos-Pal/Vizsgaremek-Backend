@@ -130,7 +130,7 @@ model Edzes_Gyakorlat_Set {
   gyakorlat_id    Int
   set_szam        Int          // Which set number is this (1, 2, 3, etc.)
   weight          Float        // Weight used in this specific set
-  reps            Int         // Reps done in this specific set
+  reps            Float        // Reps done in this specific set
   edzes_gyakorlat Edzes_Gyakorlat @relation(fields: [edzes_id, gyakorlat_id], references: [edzes_id, gyakorlat_id])
 
   @@unique([edzes_id, gyakorlat_id, set_szam])
