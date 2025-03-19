@@ -15,7 +15,6 @@ model User {
   email            String             @unique
   password         String
   gyakorlatok      User_Gyakorlat[]   // Connection to exercises with personal data
-  edzesterk        Edzesterv[]
   edzesek          Edzes[]
   isAdmin         Boolean           @default(false)    
   suly Int?
@@ -71,18 +70,6 @@ model User_Gyakorlat_History {
   @@map("user_gyakorlat_history")
 }
 
-// EDZÉSTERV TABLE
-model Edzesterv {
-  edzesterv_id   Int       @id @default(autoincrement())
-  edzesterv_neve String
-  napokszama     Int
-  user_id        Int
-  user           User      @relation(fields: [user_id], references: [user_id])
-  edzesek        Edzesterv_Edzes[]
-
-  @@map("edzesterv")
-}
-
 // EDZÉS TABLE
 model Edzes {
   edzes_id       Int                 @id @default(autoincrement())
@@ -92,25 +79,14 @@ model Edzes {
   user_id        Int
   ido            Int                  @default(0)
   isFinalized    Boolean?             @default(false)
-  user           User?               @relation(fields: [user_id], references: [user_id])
-  edzestervek    Edzesterv_Edzes[]   // Many-to-many relationship to Edzesterv
-  gyakorlatok    Edzes_Gyakorlat[]   // Many-to-many relationship to Gyakorlat
-  cardiok        Edzes_Cardio[]      // Many-to-many relationship to Cardio
+  user           User?               @relation(fields: [user_id], references: [user_id])   
+  gyakorlatok    Edzes_Gyakorlat[]   // Many-to-many relationship to Gyakorlat   
   history        User_Gyakorlat_History[] // Relation to history entries
 
   @@map("edzes")
 }
 
-//JUNCTION TABLE ARE FOR MANY-TO-MANY RELATIONSHIPS TO MAKE THE CONNECTIONS MORE READABLE AND CLEAR
-// EDZÉSTERV-EDZÉS JUNCTION TABLE
-model Edzesterv_Edzes {
-  edzesterv_id Int
-  edzes_id     Int
-  edzesterv    Edzesterv @relation(fields: [edzesterv_id], references: [edzesterv_id])
-  edzes        Edzes     @relation(fields: [edzes_id], references: [edzes_id])
 
-  @@id([edzesterv_id, edzes_id]) // Composite primary key
-}
 
 // EDZÉS-GYAKORLAT JUNCTION TABLE
 model Edzes_Gyakorlat {
@@ -142,10 +118,8 @@ model Izomcsoport {
   izomcsoport_id Int                      @id @default(autoincrement())
   nev            String
   gyakorlatok    Gyakorlat_Izomcsoport[]
-
   @@map("izomcsoport")
 }
-
 
 // GYAKORLAT-IZOMCSOPORT JUNCTION TABLE
 model Gyakorlat_Izomcsoport {
@@ -157,23 +131,3 @@ model Gyakorlat_Izomcsoport {
   @@id([gyakorlat_id, izomcsoport_id])
 }
 
-// CARDIO TABLE
-model Cardio {
-  cardio_id     Int            @id @default(autoincrement())
-  kardio_tipusa String
-  kaloria       Int?
-  ido           Int
-  edzesek       Edzes_Cardio[]
-
-  @@map("cardio")
-}
-
-// EDZÉS-CARDIO JUNCTION TABLE
-model Edzes_Cardio {
-  edzes_id  Int
-  cardio_id Int
-  edzes     Edzes  @relation(fields: [edzes_id], references: [edzes_id])
-  cardio    Cardio @relation(fields: [cardio_id], references: [cardio_id])
-
-  @@id([edzes_id, cardio_id])
-}

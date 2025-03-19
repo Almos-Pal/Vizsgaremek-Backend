@@ -5,6 +5,7 @@ import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
 import { AdminDto } from './dto/change-admin.dto';
 import { GetUserQueryDto } from './dto/user.dto';
+import { UserIdMatchGuard } from 'src/auth/guards/userId.guard';
 
 @Controller('users')
 export class UsersController {
@@ -12,18 +13,19 @@ export class UsersController {
 
   // @UseGuards( AdminGuard)
   @Get()
-  
- async findAll(    @Query() query: GetUserQueryDto
- ) {
+
+  async findAll(@Query() query: GetUserQueryDto
+  ) {
     return this.usersService.findAll(query);
   }
 
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, UserIdMatchGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
+
 
 
   @Patch(':id')
@@ -53,4 +55,3 @@ export class UsersController {
     return this.usersService.changeAdmin(+id, adminDto);
   }
 }
-  
