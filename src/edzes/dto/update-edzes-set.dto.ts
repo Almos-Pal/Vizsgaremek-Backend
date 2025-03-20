@@ -14,7 +14,7 @@ export class UpdateEdzesSetDto {
     description: 'Az ismétlések száma',
     example: 12
   })
-  @IsInt()
+  @IsNumber()
   @Min(0)
   reps: number;
 } 
