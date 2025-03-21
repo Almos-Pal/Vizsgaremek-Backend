@@ -86,7 +86,7 @@ export class Edzes {
     @IsDefined()
     @IsNumber()
     edzes_id: number;
-
+    
     @ApiProperty({
         description: 'Az edzés neve',
         example: 'Melledzés'
