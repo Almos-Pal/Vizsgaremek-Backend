@@ -862,7 +862,7 @@ else{
     );
 
     // Kiszűrjük a user adatokat és hozzáadjuk a gyakorlat előzményeket
-    const { user_id, ...result } = {
+    const { ...result } = {
       ...edzes,
       gyakorlatok: gyakorlatokWithHistory
     };

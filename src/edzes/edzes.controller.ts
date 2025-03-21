@@ -12,6 +12,7 @@ import { EdzesekResponseDto } from './dto/edzesek-response.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { UserIdMatchGuard } from 'src/auth/guards/userId.guard';
+import { EdzesOwnerGuard } from 'src/auth/guards/edzesOwner.guard';
 
 @ApiTags('Edzes')
 @Controller('edzes')
@@ -114,7 +115,7 @@ export class EdzesController {
     return this.edzesService.create(createEdzesDto);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Post(':id/gyakorlat/:userId')
   @ApiOperation({
     summary: 'Gyakorlat hozzáadása edzéshez',
@@ -147,7 +148,7 @@ export class EdzesController {
     return this.edzesService.addGyakorlatToEdzes(id, userId, gyakorlatDto);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Delete(':id/gyakorlat/:gyakorlatId/:userId')
   @ApiOperation({
     summary: 'Gyakorlat törlése edzésből',
@@ -177,7 +178,7 @@ export class EdzesController {
       return this.edzesService.deleteGyakorlatFromEdzes(id, gyakorlatId, userId)
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Post(':id/gyakorlat/:gyakorlatId/set/:userId')
   @ApiOperation({
     summary: 'Szett hozzáadása gyakorlathoz',
@@ -216,7 +217,7 @@ export class EdzesController {
     return this.edzesService.addSetToEdzesGyakorlat(id, userId, gyakorlatId, setDto);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Patch(':id/gyakorlat/:gyakorlatId/set/:setId/:userId')
   @ApiOperation({
     summary: 'Szett módosítása',
@@ -261,7 +262,7 @@ export class EdzesController {
     return this.edzesService.updateSet(id, userId, gyakorlatId, setId, updateDto);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard) 
   @Delete(':id/gyakorlat/:gyakorlatId/set/:setId/:userId')
   @ApiOperation({
     summary: 'Szett törlése',
@@ -400,7 +401,7 @@ export class EdzesController {
     return this.edzesService.findOneByDate(userId, date, isTemplate);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard )
   @Get(':id')
   @ApiOperation({
     summary: 'Egy edzés részletes adatai',
@@ -424,7 +425,7 @@ export class EdzesController {
     return this.edzesService.findOne(id);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Patch(':id')
   @ApiOperation({
     summary: 'Edzés módosítása',
@@ -448,7 +449,7 @@ export class EdzesController {
     return this.edzesService.update(id, updateEdzesDto);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Delete(':id')
   @ApiOperation({
     summary: 'Edzés törlése',
@@ -471,7 +472,7 @@ export class EdzesController {
     return this.edzesService.remove(id);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Patch(':id/finalize/:userId')
   @ApiOperation({
     summary: 'Edzés véglegesítésének állapotának módosítása',
