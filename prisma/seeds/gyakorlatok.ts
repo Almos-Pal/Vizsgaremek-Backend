@@ -6,7 +6,7 @@ import { parse } from 'csv-parse';
 const prisma = new PrismaClient();
 const workingDir = process.cwd();
 const docsPath = path.join(workingDir, 'public');
-const apiFilePath = path.join(docsPath, 'gyakorlatok_leforditott.csv');
+const apiFilePath = path.join(docsPath, 'gyakorlatok.csv');
 
 
 if (!fs.existsSync(apiFilePath)) {
