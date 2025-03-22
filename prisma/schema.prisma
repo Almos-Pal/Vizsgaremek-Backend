@@ -93,6 +93,7 @@ model Edzes {
 model Edzes_Gyakorlat {
   edzes_id      Int
   gyakorlat_id  Int
+  createdAt     DateTime   @default(now())
   edzes         Edzes     @relation(fields: [edzes_id], references: [edzes_id])
   gyakorlat     Gyakorlat @relation(fields: [gyakorlat_id], references: [gyakorlat_id])
   szettek       Edzes_Gyakorlat_Set[]

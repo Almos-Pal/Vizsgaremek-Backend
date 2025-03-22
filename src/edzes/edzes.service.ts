@@ -812,11 +812,13 @@ else{
   }
 
   async findOne(id: number) {
-
     const edzes = await this.db.edzes.findUnique({
       where: { edzes_id: id },
       include: {
         gyakorlatok: {
+          orderBy: {
+            createdAt: 'asc'
+          },
           include: {
             gyakorlat: {
               include: {
@@ -834,13 +836,11 @@ else{
             }
           }
         }
-
       }
     });
 
     if (!edzes) {
       throw new NotFoundException(`Az edzés (ID: ${id}) nem található.`);
-
     }
 
     const gyakorlatokWithHistory = await Promise.all(
