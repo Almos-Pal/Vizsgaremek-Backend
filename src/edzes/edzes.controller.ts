@@ -13,6 +13,7 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { UserIdMatchGuard } from 'src/auth/guards/userId.guard';
 import { EdzesOwnerGuard } from 'src/auth/guards/edzesOwner.guard';
+import { CreateEdzesOwnerGuard } from 'src/auth/guards/createEdzes.guard';
 
 @ApiTags('Edzes')
 @Controller('edzes')
@@ -96,7 +97,7 @@ export class EdzesController {
     return this.edzesService.findManyByDate(query);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, CreateEdzesOwnerGuard)
   @Post()
   @ApiOperation({
     summary: 'Új edzés létrehozása',
@@ -509,7 +510,7 @@ export class EdzesController {
     return this.edzesService.changeEdzesFinalizedStatus(edzesId, userId, finalized);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, CreateEdzesOwnerGuard)
   @Post('template/:templateId/:userId')
   @ApiOperation({
     summary: 'Új edzés létrehozása sablonból',
