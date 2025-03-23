@@ -27,7 +27,7 @@ export class UsersController {
   }
 
 
-
+  @UseGuards(JwtGuard, UserIdMatchGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -38,11 +38,13 @@ export class UsersController {
     return this.usersService.update(+id, updateUserDto);
   }
 
+  @UseGuards(JwtGuard, AdminGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
 
+  @UseGuards(JwtGuard, UserIdMatchGuard)
   @Get(':id/bmi')
   async getBMI(@Param('id') id: string) {
     return this.usersService.getBMI(+id);
