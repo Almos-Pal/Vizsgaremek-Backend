@@ -4,10 +4,11 @@ import { PrismaService } from '../prisma.service';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { AddEdzesGyakorlatDto } from './dto/add-edzes-gyakorlat.dto';
+import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 
 describe('EdzesService', () => {
   let service: EdzesService;
-  let mockDb: jest.Mocked<PrismaService>;
+  let mockDb: DeepMockProxy<PrismaService>;
 
   const mockUser = {
     user_id: 1,
@@ -21,7 +22,7 @@ describe('EdzesService', () => {
     updatedAt: new Date()
   };
 
-  const mockEdzes = {
+  const mockEdzes: any = {
     edzes_id: 1,
     edzes_neve: 'Test Workout',
     datum: new Date(),
@@ -34,7 +35,7 @@ describe('EdzesService', () => {
     updatedAt: new Date()
   };
 
-  const mockGyakorlat = {
+  const mockGyakorlat: any = {
     gyakorlat_id: 1,
     gyakorlat_neve: 'Test Exercise',
     eszkoz: 'Barbell',
@@ -45,13 +46,13 @@ describe('EdzesService', () => {
     updatedAt: new Date()
   };
 
-  const mockEdzesGyakorlat = {
+  const mockEdzesGyakorlat: any = {
     edzes_id: 1,
     gyakorlat_id: 1,
     createdAt: new Date()
   };
 
-  const mockPreviousHistory = {
+  const mockPreviousHistory: any = {
     gyakorlat_id: 1,
     user_id: 1,
     suly: 50,
@@ -61,47 +62,8 @@ describe('EdzesService', () => {
   };
 
   beforeEach(async () => {
-    mockDb = {
-      $transaction: jest.fn((callback) => callback(mockDb)),
-      user: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-      edzes: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        findFirst: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-      gyakorlat: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-      edzes_Gyakorlat: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        deleteMany: jest.fn(),
-      },
-      edzes_Gyakorlat_Set: {
-        deleteMany: jest.fn(),
-      },
-      user_Gyakorlat_History: {
-        findFirst: jest.fn(),
-        findMany: jest.fn(),
-        deleteMany: jest.fn(),
-      },
-    } as any;
+    mockDb = mockDeep<PrismaService>();
+    mockDb.$transaction.mockImplementation((callback) => callback(mockDb));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -120,7 +82,7 @@ describe('EdzesService', () => {
     it('should create an edzes successfully', async () => {
       const createEdzesDto: CreateEdzesDto = {
         edzes_neve: 'Test Workout',
-        datum: new Date(),
+        datum: new Date().toISOString(),
         isTemplate: false,
         ido: 60,
         user_id: 1
@@ -186,19 +148,23 @@ describe('EdzesService', () => {
 
   describe('deleteGyakorlatFromEdzes', () => {
     it('should delete gyakorlat from edzes successfully', async () => {
+      const mockTransactionPrisma = mockDeep<PrismaService>();
+      mockDb.$transaction.mockImplementation((callback) => callback(mockTransactionPrisma));
+
       mockDb.edzes.findUnique.mockResolvedValue(mockEdzes);
       mockDb.edzes_Gyakorlat.findUnique.mockResolvedValue(mockEdzesGyakorlat);
-      mockDb.edzes_Gyakorlat_Set.deleteMany.mockResolvedValue({ count: 1 });
-      mockDb.edzes_Gyakorlat.delete.mockResolvedValue(mockEdzesGyakorlat);
-      mockDb.user_Gyakorlat_History.deleteMany.mockResolvedValue({ count: 1 });
+      
+      mockTransactionPrisma.edzes_Gyakorlat_Set.deleteMany.mockResolvedValue({ count: 1 });
+      mockTransactionPrisma.edzes_Gyakorlat.delete.mockResolvedValue(mockEdzesGyakorlat);
+      mockTransactionPrisma.user_Gyakorlat_History.deleteMany.mockResolvedValue({ count: 1 });
 
       const result = await service.deleteGyakorlatFromEdzes(1, 1, 1);
 
       expect(result).toBeDefined();
       expect(result.message).toBe('Gyakorlat sikeresen törölve az edzésből');
-      expect(mockDb.edzes_Gyakorlat_Set.deleteMany).toHaveBeenCalled();
-      expect(mockDb.edzes_Gyakorlat.delete).toHaveBeenCalled();
-      expect(mockDb.user_Gyakorlat_History.deleteMany).toHaveBeenCalled();
+      expect(mockTransactionPrisma.edzes_Gyakorlat_Set.deleteMany).toHaveBeenCalled();
+      expect(mockTransactionPrisma.edzes_Gyakorlat.delete).toHaveBeenCalled();
+      expect(mockTransactionPrisma.user_Gyakorlat_History.deleteMany).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when edzes not found', async () => {
