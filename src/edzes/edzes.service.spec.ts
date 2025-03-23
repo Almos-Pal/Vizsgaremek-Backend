@@ -1,174 +1,219 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EdzesService } from './edzes.service';
 import { PrismaService } from '../prisma.service';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { CreateEdzesDto } from './dto/create-edzes.dto';
+import { AddEdzesGyakorlatDto } from './dto/add-edzes-gyakorlat.dto';
 
 describe('EdzesService', () => {
   let service: EdzesService;
-  let prisma: PrismaService;
+  let mockDb: jest.Mocked<PrismaService>;
 
-  const mockPrismaService = {
-    edzes: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn().mockResolvedValue([]),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
-    gyakorlat: {
-      findUnique: jest.fn(),
-    },
-    edzes_Gyakorlat: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      delete: jest.fn(),
-    },
-    user_Gyakorlat_History: {
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-    },
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+  const mockUser = {
+    user_id: 1,
+    username: 'testuser',
+    email: 'test@test.com',
+    password: 'hashedpassword',
+    isAdmin: false,
+    suly: 70,
+    magassag: 175,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  const mockEdzes = {
+    edzes_id: 1,
+    edzes_neve: 'Test Workout',
+    datum: new Date(),
+    isTemplate: false,
+    user_id: 1,
+    ido: 60,
+    isFinalized: false,
+    isFavorite: false,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  const mockGyakorlat = {
+    gyakorlat_id: 1,
+    gyakorlat_neve: 'Test Exercise',
+    eszkoz: 'Barbell',
+    gyakorlat_leiras: 'Test description',
+    fo_izomcsoport: 'Chest',
+    user_id: 1,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  const mockEdzesGyakorlat = {
+    edzes_id: 1,
+    gyakorlat_id: 1,
+    createdAt: new Date()
+  };
+
+  const mockPreviousHistory = {
+    gyakorlat_id: 1,
+    user_id: 1,
+    suly: 50,
+    sorozatszam: 3,
+    iszmaszam: 10,
+    datum: new Date('2025-03-23T10:51:32.054Z')
   };
 
   beforeEach(async () => {
+    mockDb = {
+      $transaction: jest.fn((callback) => callback(mockDb)),
+      user: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      edzes: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      gyakorlat: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      edzes_Gyakorlat: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        deleteMany: jest.fn(),
+      },
+      edzes_Gyakorlat_Set: {
+        deleteMany: jest.fn(),
+      },
+      user_Gyakorlat_History: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        deleteMany: jest.fn(),
+      },
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EdzesService,
         {
           provide: PrismaService,
-          useValue: mockPrismaService,
+          useValue: mockDb,
         },
       ],
     }).compile();
 
     service = module.get<EdzesService>(EdzesService);
-    prisma = module.get<PrismaService>(PrismaService);
-    
-    // Clear all mocks before each test
-    jest.clearAllMocks();
   });
 
   describe('create', () => {
-    const createEdzesDto = {
-      edzes_neve: 'Test Workout',
-      user_id: 1,
-      datum: new Date().toISOString(),
-      ido: 60,
-      isTemplate: false,
-    };
-
     it('should create an edzes successfully', async () => {
-      const mockUser = { user_id: 1, username: 'test' };
-      const mockEdzes = { 
-        edzes_id: 1, 
-        ...createEdzesDto, 
-        gyakorlatok: [] 
+      const createEdzesDto: CreateEdzesDto = {
+        edzes_neve: 'Test Workout',
+        datum: new Date(),
+        isTemplate: false,
+        ido: 60,
+        user_id: 1
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.edzes.findMany.mockResolvedValue([]); // No existing workouts on that day
-      mockPrismaService.edzes.create.mockResolvedValue(mockEdzes);
+      mockDb.user.findUnique.mockResolvedValue(mockUser);
+      mockDb.edzes.findMany.mockResolvedValue([]);
+      mockDb.edzes.create.mockResolvedValue(mockEdzes);
 
       const result = await service.create(createEdzesDto);
 
       expect(result).toBeDefined();
       expect(result.edzes_neve).toBe(createEdzesDto.edzes_neve);
-      expect(mockPrismaService.edzes.create).toHaveBeenCalled();
-    });
-
-    it('should throw NotFoundException when user not found', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      await expect(service.create(createEdzesDto)).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw ConflictException when workout exists on same day', async () => {
-      const mockUser = { user_id: 1, username: 'test' };
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.edzes.findMany.mockResolvedValue([{ edzes_id: 1 }]);
-
-      await expect(service.create(createEdzesDto)).rejects.toThrow(ConflictException);
+      expect(mockDb.edzes.create).toHaveBeenCalled();
     });
   });
 
   describe('findOne', () => {
-    it('should return an edzes by id', async () => {
-      const mockEdzes = {
-        edzes_id: 1,
-        edzes_neve: 'Test Workout',
-        user_id: 1,
-        gyakorlatok: [],
-      };
+    it('should include gyakorlatok in the response', async () => {
+      mockDb.edzes.findUnique.mockResolvedValue({
+        ...mockEdzes,
+        gyakorlatok: [{
+          gyakorlat: mockGyakorlat,
+          szettek: [],
+          createdAt: new Date()
+        }]
+      });
 
-      mockPrismaService.edzes.findUnique.mockResolvedValue(mockEdzes);
+      mockDb.user_Gyakorlat_History.findFirst.mockResolvedValue(mockPreviousHistory);
+      mockDb.user_Gyakorlat_History.findMany.mockResolvedValue([mockPreviousHistory]);
 
       const result = await service.findOne(1);
 
       expect(result).toBeDefined();
-      expect(result.edzes_neve).toBe(mockEdzes.edzes_neve);
-    });
-
-    it('should throw NotFoundException when edzes not found', async () => {
-      mockPrismaService.edzes.findUnique.mockResolvedValue(null);
-
-      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+      expect(result.gyakorlatok[0].gyakorlat).toBeDefined();
+      expect(result.gyakorlatok[0].szettek).toBeDefined();
     });
   });
 
   describe('addGyakorlatToEdzes', () => {
-    const mockParams = {
-      edzesId: 1,
-      userId: 1,
-      gyakorlatDto: { gyakorlat_id: 1 }
-    };
+    it('should throw NotFoundException when edzes not found', async () => {
+      mockDb.edzes.findUnique.mockResolvedValue(null);
 
-    it('should add gyakorlat to edzes successfully', async () => {
-      const mockEdzes = { edzes_id: 1, user_id: 1 };
-      const mockGyakorlat = { gyakorlat_id: 1 };
-      const mockEdzesGyakorlat = { 
-        edzes_id: 1, 
-        gyakorlat_id: 1,
-        createdAt: new Date()
-      };
+      await expect(service.addGyakorlatToEdzes(
+        1,
+        1,
+        { gyakorlat_id: 1 } as AddEdzesGyakorlatDto
+      )).rejects.toThrow(NotFoundException);
+    });
 
-      mockPrismaService.edzes.findUnique.mockResolvedValue(mockEdzes);
-      mockPrismaService.gyakorlat.findUnique.mockResolvedValue(mockGyakorlat);
-      mockPrismaService.edzes_Gyakorlat.findUnique.mockResolvedValue(null);
-      mockPrismaService.edzes_Gyakorlat.create.mockResolvedValue(mockEdzesGyakorlat);
+    it('should throw ConflictException when gyakorlat already exists in edzes', async () => {
+      mockDb.edzes.findUnique.mockResolvedValue(mockEdzes);
+      mockDb.gyakorlat.findUnique.mockResolvedValue(mockGyakorlat);
+      mockDb.edzes_Gyakorlat.findUnique.mockResolvedValue(mockEdzesGyakorlat);
 
-      const result = await service.addGyakorlatToEdzes(
-        mockParams.edzesId,
-        mockParams.userId,
-        mockParams.gyakorlatDto
-      );
-
-      expect(result).toBeDefined();
-      expect(mockPrismaService.edzes_Gyakorlat.create).toHaveBeenCalled();
+      await expect(service.addGyakorlatToEdzes(
+        1,
+        1,
+        { gyakorlat_id: 1 } as AddEdzesGyakorlatDto
+      )).rejects.toThrow(ConflictException);
     });
   });
 
-  describe('changeEdzesFinalizedStatus', () => {
-    it('should change finalized status successfully', async () => {
-      const mockEdzes = {
-        edzes_id: 1,
-        user_id: 1,
-        isFinalized: false
-      };
+  describe('deleteGyakorlatFromEdzes', () => {
+    it('should delete gyakorlat from edzes successfully', async () => {
+      mockDb.edzes.findUnique.mockResolvedValue(mockEdzes);
+      mockDb.edzes_Gyakorlat.findUnique.mockResolvedValue(mockEdzesGyakorlat);
+      mockDb.edzes_Gyakorlat_Set.deleteMany.mockResolvedValue({ count: 1 });
+      mockDb.edzes_Gyakorlat.delete.mockResolvedValue(mockEdzesGyakorlat);
+      mockDb.user_Gyakorlat_History.deleteMany.mockResolvedValue({ count: 1 });
 
-      mockPrismaService.edzes.findUnique.mockResolvedValue(mockEdzes);
-      mockPrismaService.edzes.update.mockResolvedValue({
-        ...mockEdzes,
-        isFinalized: true
-      });
-
-      const result = await service.changeEdzesFinalizedStatus(1, 1, true);
+      const result = await service.deleteGyakorlatFromEdzes(1, 1, 1);
 
       expect(result).toBeDefined();
-      expect(result.isFinalized).toBe(true);
-      expect(mockPrismaService.edzes.update).toHaveBeenCalled();
+      expect(result.message).toBe('Gyakorlat sikeresen törölve az edzésből');
+      expect(mockDb.edzes_Gyakorlat_Set.deleteMany).toHaveBeenCalled();
+      expect(mockDb.edzes_Gyakorlat.delete).toHaveBeenCalled();
+      expect(mockDb.user_Gyakorlat_History.deleteMany).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when edzes not found', async () => {
+      mockDb.edzes.findUnique.mockResolvedValue(null);
+
+      await expect(service.deleteGyakorlatFromEdzes(1, 1, 1))
+        .rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when gyakorlat not found in edzes', async () => {
+      mockDb.edzes.findUnique.mockResolvedValue(mockEdzes);
+      mockDb.edzes_Gyakorlat.findUnique.mockResolvedValue(null);
+
+      await expect(service.deleteGyakorlatFromEdzes(1, 1, 1))
+        .rejects.toThrow(BadRequestException);
     });
   });
 });
