@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException, UseGuards } from '@nestjs/common';
 import { GyakorlatService } from './gyakorlat.service';
 import { CreateGyakorlatDto } from './dto/create-gyakorlat.dto';
 import { UpdateGyakorlatDto } from './dto/update-gyakorlat.dto';
@@ -6,12 +6,15 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Gyakorlat } from './entities/gyakorlat.entity';
 import { GyakorlatokResponseDto, GetGyakorlatokQueryDto } from './dto/gyakorlatok.dto';
 import { ErrorResponseDto, SuccessResponseDto, GyakorlatNotFoundDto } from '../common/dto';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @ApiTags('Gyakorlat')
 @Controller('gyakorlat')
 export class GyakorlatController {
   constructor(private readonly gyakorlatService: GyakorlatService) {}
 
+  @UseGuards(JwtGuard, AdminGuard)
   @Post()
   @ApiOperation({ summary: 'Új gyakorlat létrehozása' })
   @ApiResponse({ 
@@ -28,6 +31,7 @@ export class GyakorlatController {
     return this.gyakorlatService.create(createGyakorlatDto);
   }
 
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ 
     summary: 'Összes gyakorlat lekérése',
@@ -47,6 +51,7 @@ export class GyakorlatController {
     return this.gyakorlatService.findAll(query);
   }
 
+  @UseGuards(JwtGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Gyakorlat lekérése azonosító alapján' })
   @ApiResponse({ 
@@ -67,6 +72,7 @@ export class GyakorlatController {
     return gyakorlat;
   }
 
+  @UseGuards(JwtGuard, AdminGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Gyakorlat módosítása azonosító alapján' })
   @ApiResponse({ 
@@ -92,6 +98,7 @@ export class GyakorlatController {
     return gyakorlat;
   }
 
+  @UseGuards(JwtGuard, AdminGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Gyakorlat törlése azonosító alapján' })
   @ApiResponse({ 
