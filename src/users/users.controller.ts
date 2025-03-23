@@ -11,9 +11,8 @@ import { UserIdMatchGuard } from 'src/auth/guards/userId.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
-  // @UseGuards( AdminGuard)
+  @UseGuards(JwtGuard, AdminGuard)
   @Get()
-
   async findAll(@Query() query: GetUserQueryDto
   ) {
     return this.usersService.findAll(query);

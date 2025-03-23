@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Patch, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { UserGyakorlatService } from './user-gyakorlat.service';
 import { CreateUserGyakorlatDto } from './dto/create-user-gyakorlat.dto';
@@ -6,12 +6,14 @@ import { CreateUserGyakorlatHistoryDto } from './dto/create-user-gyakorlat-histo
 import { UserGyakorlat } from './entities/user-gyakorlat.entity';
 import { GetUserGyakorlatokQueryDto, UserGyakorlatokResponseDto } from './dto/user-gyakorlatok.dto';
 import { UserGyakorlatNotFoundDto } from '../common/dto/not-found.dto';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
 
 @ApiTags('User Gyakorlat')
 @Controller('user-gyakorlat')
 export class UserGyakorlatController {
   constructor(private readonly userGyakorlatService: UserGyakorlatService) {}
 
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ 
     summary: 'Új user-gyakorlat kapcsolat létrehozása',
@@ -34,6 +36,7 @@ export class UserGyakorlatController {
     return this.userGyakorlatService.createUserGyakorlat(createUserGyakorlatDto);
   }
 
+  @UseGuards(JwtGuard)
   @Post('history')
   @ApiOperation({ 
     summary: 'Új edzés history bejegyzés létrehozása',
@@ -48,6 +51,7 @@ export class UserGyakorlatController {
     return this.userGyakorlatService.createUserGyakorlatHistory(createHistoryDto);
   }
 
+  @UseGuards(JwtGuard)
   @Get('user/:userId')
   @ApiOperation({ 
     summary: 'Felhasználó összes gyakorlatának lekérése',
@@ -71,6 +75,7 @@ export class UserGyakorlatController {
     return this.userGyakorlatService.getUserGyakorlatok(+userId, query);
   }
 
+  @UseGuards(JwtGuard)
   @Get(':userId/:gyakorlatId')
   @ApiOperation({ 
     summary: 'Egy konkrét user-gyakorlat részletes adatai',
@@ -105,6 +110,7 @@ export class UserGyakorlatController {
     return this.userGyakorlatService.getUserGyakorlatDetails(+userId, +gyakorlatId);
   }
 
+  @UseGuards(JwtGuard)
   @Delete(':userId/:gyakorlatId')
   @ApiOperation({ 
     summary: 'Felhasználó gyakorlatának törlése',
