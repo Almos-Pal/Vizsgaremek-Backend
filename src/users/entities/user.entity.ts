@@ -3,29 +3,44 @@ import { IsBoolean, IsDefined, IsEmail, IsNumber, IsOptional, IsString, IsStrong
 
 export class User {
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 1,
+        description: 'A felhasználó azonosítója'
+    })
     @IsDefined()
     @IsNumber()
     user_id: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 'teszt',
+        description: 'A felhasználó felhasználóneve'
+    })
     @IsDefined()
     @IsString()
     username: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 'teszt@gmail.com',
+        description: 'A felhasználó email címe'
+    })
     @IsDefined()
     @IsString()
     @IsEmail()
     email: string;
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ 
+        example: 'Teszt1234.',
+        description: 'A felhasználó jelszava (erős jelszó, legalább 8 karakter, tartalmazzon kis- és nagybetűt, számot és speciális karaktert)'
+     })
     @IsDefined()
     @IsString()
     @IsStrongPassword()
     password?: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: false,
+        description: 'A felhasználó admin jogosultsággal rendelkezik-e'
+    })
     @IsDefined()
     @IsBoolean()
     isAdmin: boolean;

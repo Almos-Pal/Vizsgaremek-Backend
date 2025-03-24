@@ -17,7 +17,17 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('RepVault')
-    .setDescription('RepVault API')
+    .setDescription(`
+      RepVault API
+  
+      A védett végpontok eléréséhez Bearer típusú JWT tokent kell használnia.
+      Az authentikáció fül alatt lévő /login végponton keresztül tud tokenhez jutni. Adja meg a felhasználónevét és jelszavát,
+      illetve ha még nincs felhasználója, regisztráljon az /register végponton keresztül és aztán jelentkezzen be. 
+      Ezt követően kattintson az "Authorize" gombra a Swagger felületén, majd másolja be a tokenjét.
+  
+      Miután megadta a tokent, a Swagger automatikusan hozzáadja azt az "Authorization" fejléchez, 
+      így Ön tesztelheti a védett végpontokat.
+    `)
     .setVersion('1.0')
     .addBearerAuth(
       {

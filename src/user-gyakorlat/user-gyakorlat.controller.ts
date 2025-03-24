@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete, Query, Patch, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiSecurity } from '@nestjs/swagger';
 import { UserGyakorlatService } from './user-gyakorlat.service';
 import { CreateUserGyakorlatDto } from './dto/create-user-gyakorlat.dto';
 import { CreateUserGyakorlatHistoryDto } from './dto/create-user-gyakorlat-history.dto';
@@ -9,6 +9,7 @@ import { UserGyakorlatNotFoundDto } from '../common/dto/not-found.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 
 @ApiTags('User Gyakorlat')
+@ApiSecurity('access-token')
 @Controller('user-gyakorlat')
 export class UserGyakorlatController {
   constructor(private readonly userGyakorlatService: UserGyakorlatService) {}

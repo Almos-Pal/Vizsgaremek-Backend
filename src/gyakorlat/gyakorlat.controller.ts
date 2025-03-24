@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundExcep
 import { GyakorlatService } from './gyakorlat.service';
 import { CreateGyakorlatDto } from './dto/create-gyakorlat.dto';
 import { UpdateGyakorlatDto } from './dto/update-gyakorlat.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Gyakorlat } from './entities/gyakorlat.entity';
 import { GyakorlatokResponseDto, GetGyakorlatokQueryDto } from './dto/gyakorlatok.dto';
 import { ErrorResponseDto, SuccessResponseDto, GyakorlatNotFoundDto } from '../common/dto';
@@ -10,6 +10,7 @@ import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @ApiTags('Gyakorlat')
+@ApiSecurity('access-token')
 @Controller('gyakorlat')
 export class GyakorlatController {
   constructor(private readonly gyakorlatService: GyakorlatService) {}

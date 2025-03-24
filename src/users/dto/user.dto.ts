@@ -29,17 +29,69 @@ export class GetUserQueryDto extends PaginationQueryDto {
     email?: string;
 }
 
-export class UserResponseDto implements PaginatedResponseDto<User> {
+
+export class UserDto {
     @ApiProperty({
-        description: 'User-Gyakorlat kapcsolatok listája',
-        type: () => [User],
-        isArray: true
+        description: 'Unique identifier of the user',
+        example: 37,
     })
-    items: User[] ;
+    user_id: number;
 
     @ApiProperty({
-        description: 'Lapozási metaadatok',
-        type: () => PaginationMetaDto
+        description: 'Username of the user',
+        example: 'Admin',
     })
-    meta: PaginationMetaDto;
-} 
+    username: string;
+
+    @ApiProperty({
+        description: 'Email address of the user',
+        example: 'admin@gmail.com',
+    })
+    email: string;
+
+    @ApiProperty({
+        description: 'User weight in kilograms',
+        example: null,
+        nullable: true,
+    })
+    suly?: number;
+
+    @ApiProperty({
+        description: 'User height in centimeters',
+        example: null,
+        nullable: true,
+    })
+    magassag?: number;
+
+    @ApiProperty({
+        description: 'Indicates if the user is an administrator',
+        example: true,
+    })
+    isAdmin: boolean;
+}
+
+export class UserResponseDto {
+    @ApiProperty({
+        description: 'List of users',
+        type: () => [User],
+        isArray: true,
+
+    })
+    items: User[];
+
+    @ApiProperty({
+        description: 'Pagination metadata',
+        example: {
+            currentPage: 1,
+            itemsPerPage: 1,
+            totalItems: 7,
+            totalPages: 7
+        }
+    })
+    meta: {
+        currentPage: number;
+        itemsPerPage: number;
+        totalItems: number;
+        totalPages: number;
+    };
+}

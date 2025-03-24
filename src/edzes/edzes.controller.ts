@@ -17,6 +17,7 @@ import { CreateEdzesOwnerGuard } from 'src/auth/guards/createEdzes.guard';
 
 @ApiTags('Edzes')
 @Controller('edzes')
+@ApiSecurity('access-token')
 export class EdzesController {
   constructor(private readonly edzesService: EdzesService) { }
 
@@ -307,7 +308,6 @@ export class EdzesController {
   }
 
   @UseGuards(JwtGuard, EdzesOwnerGuard)
-  @ApiSecurity('access-token')
   @Get()
   @ApiOperation({
     summary: 'Összes edzés lekérése',
