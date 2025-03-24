@@ -30,14 +30,14 @@ interface Gyak {
 
 const headers = ['rowid', 'name', 'force', 'level', 'mechanic', 'equipment', 'primaryMuscle', 'secondaryMuscle', 'instructions', 'category', 'images', 'id'];
 const fileContent = fs.readFileSync(apiFilePath, { encoding: 'utf-8' });
-const dataToInsert: any[] = [];
 let data: Gyak[] = [];
 
 
 function cleanInstructions(text: string): string {
- 
     return text.replace(/[\[\]"„;]/g, '').trim();
 }
+
+
 
 parse(
     fileContent,
@@ -80,18 +80,19 @@ async function main() {
                     data: {
                         gyakorlat_neve: line.name,
                         eszkoz: line.equipment,
-                        gyakorlat_leiras: cleanedInstructions, // use the cleaned text
+                        // Use the cleaned instructions text here
+                        gyakorlat_leiras: cleanInstructions(cleanedInstructions), // use the cleaned text
                         user_id: 0,
-                        fo_izomcsoport: parseInt(line.primaryMuscle[1]),
-                    },
+                        fo_izomcsoport: parseInt(line.primaryMuscle.replace(/\D/g, "")),
+                     },
                 });
 
                 // Create primary muscle group connection using the new ID
                 await prisma.gyakorlat_Izomcsoport.create({
                     data: {
                         gyakorlat_id: createdGyakorlat.gyakorlat_id,
-                        izomcsoport_id: parseInt(line.primaryMuscle[1]),
-                    },
+                        izomcsoport_id: parseInt(line.primaryMuscle.replace(/\D/g, ""))
+                    }
                 });
 
                 // Create secondary muscle group connections using the new ID
@@ -99,7 +100,7 @@ async function main() {
                     .substring(1, line.secondaryMuscle.length - 1)
                     .split(';')
                     .map(Number)) {
-                    if (id != 0) {
+                    if  (id != 0) {
                         try {
                             await prisma.gyakorlat_Izomcsoport.create({
                                 data: {
@@ -108,10 +109,8 @@ async function main() {
                                 },
                             });
                         } catch {
-                            console.error(`Létező elem:`, createdGyakorlat.gyakorlat_id, id);
+                            // Optionally log or handle duplicate connections here
                         }
-                    } else {
-                        console.log('No secondary muscle');
                     }
                 }
             } catch (error) {
@@ -126,4 +125,5 @@ async function main() {
         await prisma.$disconnect();
     }
 }
+
 main();
