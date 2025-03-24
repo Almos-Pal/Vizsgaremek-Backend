@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query,
 import { EdzesService } from './edzes.service';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
-import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiQuery, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { Edzes } from './entities/edzes.entity';
 import { AddEdzesGyakorlatDto } from './dto/add-edzes-gyakorlat.dto';
 import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
@@ -52,7 +52,7 @@ export class EdzesController {
     return this.edzesService.findTen(userId, gyakorlat, isTemplate);
   }
 
- 
+  
   @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('intervallum')
   @ApiOperation({
@@ -307,6 +307,7 @@ export class EdzesController {
   }
 
   @UseGuards(JwtGuard, EdzesOwnerGuard)
+  @ApiSecurity('access-token')
   @Get()
   @ApiOperation({
     summary: 'Összes edzés lekérése',

@@ -56,6 +56,13 @@ paths:
             maximum: 100
             default: 10
             type: number
+        - name: favoriteExercises
+          required: false
+          in: query
+          description: Kedvenc edzés
+          schema:
+            default: false
+            type: boolean
         - name: user_id
           required: false
           in: query
@@ -95,6 +102,8 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '404':
           description: Az edzések nem találhatóak
+      security:
+        - bearer: []
       summary: Egy user adott intervallumon belüli edzései
       tags:
         - Edzes
@@ -144,6 +153,13 @@ paths:
             maximum: 100
             default: 10
             type: number
+        - name: favoriteExercises
+          required: false
+          in: query
+          description: Kedvenc edzés
+          schema:
+            default: false
+            type: boolean
         - name: user_id
           required: false
           in: query
@@ -561,6 +577,8 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '404':
           description: A sablon vagy a felhasználó nem található
+        '409':
+          description: Az adott napon már létezik edzés
       summary: Új edzés létrehozása sablonból
       tags:
         - Edzes
@@ -1146,6 +1164,11 @@ servers:
   - url: http://localhost:8000
     description: Development Server
 components:
+  securitySchemes:
+    access-token:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
   schemas:
     EdzesGyakorlatSet:
       type: object
@@ -1243,6 +1266,14 @@ components:
           type: boolean
           description: Igaz ha az edzés befejeződött
           example: false
+        isTemplate:
+          type: boolean
+          description: Igaz ha az edzés sablon
+          example: false
+        isFavorite:
+          type: boolean
+          description: Kedvenc edzés
+          example: false
         gyakorlatok:
           description: Az edzéshez tartozó gyakorlatok
           type: array
@@ -1254,6 +1285,8 @@ components:
         - datum
         - ido
         - isFinalized
+        - isTemplate
+        - isFavorite
         - gyakorlatok
     CreateEdzesDto:
       type: object
@@ -1347,6 +1380,10 @@ components:
           type: number
           example: 10
           description: Összes oldal száma
+        favoriteExercises:
+          type: boolean
+          example: false
+          description: kedvenc edzések
       required:
         - currentPage
         - itemsPerPage

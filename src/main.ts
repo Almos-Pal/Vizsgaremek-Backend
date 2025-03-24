@@ -19,6 +19,14 @@ async function bootstrap() {
     .setTitle('RepVault')
     .setDescription('RepVault API')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token',
+    )
 
     .addServer('http://localhost:8000', 'Development Server')
     .build();

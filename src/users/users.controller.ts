@@ -18,22 +18,18 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
-
   @UseGuards(JwtGuard, UserIdMatchGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
-
   @UseGuards(JwtGuard, UserIdMatchGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-
   ) {
-
     return this.usersService.update(+id, updateUserDto);
   }
 
