@@ -53,7 +53,7 @@ export class EdzesController {
   }
 
  
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('intervallum')
   @ApiOperation({
     summary: 'Egy user adott intervallumon belüli edzései',
@@ -306,7 +306,7 @@ export class EdzesController {
     return this.edzesService.removeSet(id, userId, gyakorlatId, setId);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get()
   @ApiOperation({
     summary: 'Összes edzés lekérése',
@@ -361,7 +361,7 @@ export class EdzesController {
     return this.edzesService.getEdzesIzomcsoportok(userId);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('napi')
   @ApiOperation({
     summary: 'Egy user adott napi edzésének részletes adatai',
@@ -547,7 +547,7 @@ export class EdzesController {
     return this.edzesService.createEdzesFromTemplate(templateId, userId,date);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('current-week/:userId')
   @ApiOperation({
     summary: 'Aktuális heti edzések lekérése',

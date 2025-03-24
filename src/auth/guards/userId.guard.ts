@@ -8,7 +8,7 @@ export class UserIdMatchGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new UnauthorizedException('No user found in token payload. Ensure JwtGuard is applied first.');
+      throw new UnauthorizedException('Nem található felhasználó a tokenben. Győződjön meg róla, hogy a JwtGuard alkalmazva van.');
     }
 
     if (user.isAdmin) {
@@ -17,7 +17,7 @@ export class UserIdMatchGuard implements CanActivate {
 
     const paramId = request.params.id; 
     if (Number(paramId) !== user.user_id) {
-      throw new UnauthorizedException('User ID mismatch.');
+      throw new UnauthorizedException('A felhasználói azonosító nem egyezik.');
     }
 
     return true;

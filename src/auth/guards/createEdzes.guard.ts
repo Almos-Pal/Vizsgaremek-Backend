@@ -8,20 +8,19 @@ export class CreateEdzesOwnerGuard implements CanActivate {
     const user = request.user; 
 
     if (!user) {
-      throw new UnauthorizedException('No user found in token payload. Ensure JwtGuard is applied first.');
+      throw new UnauthorizedException('Nincs felhasználó a tokenben. Győződjön meg róla, hogy a JwtGuard alkalmazva van.');
     }
-
 
     const userIdFromBody = request.body?.user_id;
     const userIdFromParams = request.params?.userId ? Number(request.params.userId) : undefined;
     const providedUserId = userIdFromBody ?? userIdFromParams;
 
     if (providedUserId === undefined) {
-      throw new UnauthorizedException('No user_id provided in the request.');
+      throw new UnauthorizedException('Nincs user_id megadva a kérésben.');
     }
 
     if (providedUserId !== user.user_id) {
-      throw new UnauthorizedException('User ID mismatch. You cannot create an edzés for another user.');
+      throw new UnauthorizedException('Felhasználói azonosító nem egyezik. Nem hozhat létre edzést másik felhasználó számára.');
     }
 
     return true;
