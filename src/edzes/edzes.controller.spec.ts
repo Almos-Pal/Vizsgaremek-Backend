@@ -1,20 +1,69 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EdzesController } from './edzes.controller';
 import { EdzesService } from './edzes.service';
+import { PrismaService } from '../prisma.service';
 
 describe('EdzesController', () => {
   let controller: EdzesController;
+  let service: EdzesService;
+
+  const mockEdzesService = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
+    addGyakorlatToEdzes: jest.fn(),
+    removeGyakorlatFromEdzes: jest.fn(),
+    changeEdzesFinalizedStatus: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EdzesController],
-      providers: [EdzesService],
+      providers: [
+        {
+          provide: EdzesService,
+          useValue: mockEdzesService,
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            $connect: jest.fn(),
+            $disconnect: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<EdzesController>(EdzesController);
+    service = module.get<EdzesService>(EdzesService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('create', () => {
+    it('should create a new edzes', async () => {
+      const createEdzesDto = {
+        edzes_neve: 'Test Workout',
+        user_id: 1,
+        datum: new Date().toISOString(),
+        ido: 60,
+        isTemplate: false,
+      };
+
+      const expectedResult = {
+        edzes_id: 1,
+        ...createEdzesDto,
+      };
+
+      mockEdzesService.create.mockResolvedValue(expectedResult);
+
+      const result = await controller.create(createEdzesDto);
+      expect(result).toEqual(expectedResult);
+      expect(mockEdzesService.create).toHaveBeenCalledWith(createEdzesDto);
+    });
   });
 });
