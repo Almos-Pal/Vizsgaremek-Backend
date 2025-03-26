@@ -26,8 +26,8 @@ paths:
           schema:
             type: boolean
       responses:
-        '200':
-          description: ''
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: A legutóbbi 10 edzés
@@ -102,6 +102,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzések nem találhatóak
       security:
@@ -127,6 +129,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A felhasználó nem található
       security:
@@ -183,6 +187,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EdzesekResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Összes edzés lekérése
@@ -220,6 +226,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés vagy a gyakorlat nem található
       security:
@@ -251,8 +259,8 @@ paths:
           schema:
             type: number
       responses:
-        '200':
-          description: ''
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Gyakorlat törlése edzésből
@@ -296,6 +304,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés, a gyakorlat vagy a felhasználó nem található
       security:
@@ -345,6 +355,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés, a gyakorlat vagy a szett nem található
       security:
@@ -383,6 +395,8 @@ paths:
       responses:
         '200':
           description: A szett sikeresen törölve
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés, a gyakorlat vagy a szett nem található
       security:
@@ -423,6 +437,8 @@ paths:
                     description: Az összes érintett fő izomcsoport azonosítója
         '400':
           description: Hibás kérés - Érvénytelen felhasználó azonosító
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Edzésekben használt izomcsoportok lekérése
@@ -460,6 +476,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés nem található
       security:
@@ -487,6 +505,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés nem található
       security:
@@ -517,6 +537,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés nem található
       security:
@@ -537,6 +559,8 @@ paths:
       responses:
         '200':
           description: Az edzés sikeresen törölve
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés nem található
       security:
@@ -572,6 +596,8 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '400':
           description: Hiba történt az edzés állapotának módosítása során
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: Az edzés nem található vagy nem tartozik a megadott felhasználóhoz
       security:
@@ -603,6 +629,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Edzes'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A sablon vagy a felhasználó nem található
         '409':
@@ -656,6 +684,8 @@ paths:
                     description: Az érintett fő izomcsoportok azonosítói
         '400':
           description: Hibás kérés
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Aktuális heti edzések lekérése
@@ -905,41 +935,75 @@ paths:
         - Users
   /auth/register:
     post:
+      description: >-
+        Új felhasználó regisztrálása. Az email címnek egyedinek kell lennie. A
+        jelszónak minimum 8 karakter hosszúnak kell lennie, legalább egy kis és
+        nagy betűvel, illetve egy speciális karakterrel.
       operationId: registerUser
       parameters: []
       requestBody:
         required: true
+        description: Felhasználó regisztráció adatai
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserDto'
+              example:
+                username: exampleUser
+                password: Example123.
+                email: example@example.com
       responses:
         '201':
-          description: ''
+          description: Sikeres regisztráció
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '400':
+          description: Hibás adatok
+        '409':
+          description: Az email cím már használatban van
+      summary: Regisztráció
       tags:
         - Authentikáció
   /auth/login:
     post:
+      description: Felhasználó bejelentkezése
       operationId: login
       parameters: []
       requestBody:
         required: true
+        description: Felhasználó bejelentkezési adatai
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginDto'
+              example:
+                email: example@example.com
+                password: Example123.
       responses:
-        '201':
-          description: ''
+        '200':
+          description: Sikeres bejelentkezés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLogiResponsenDto'
+        '401':
+          description: Hibás felhasználónév vagy jelszó
+      summary: Bejelentkezés
       tags:
         - Authentikáció
   /auth/refresh:
     post:
+      description: Access token frissítése, ha a access token lejárt.
       operationId: refreshToken
       parameters: []
       responses:
-        '201':
-          description: ''
+        '200':
+          description: Sikeres token frissítés
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
+      security:
+        - access-token: []
+      summary: Token frissítése
       tags:
         - Authentikáció
   /gyakorlat:
@@ -965,6 +1029,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Új gyakorlat létrehozása
@@ -1032,6 +1098,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Összes gyakorlat lekérése
@@ -1053,6 +1121,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Gyakorlat'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A gyakorlat nem található
           content:
@@ -1091,6 +1161,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A gyakorlat nem található
           content:
@@ -1117,6 +1189,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A gyakorlat nem található
           content:
@@ -1148,6 +1222,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Összes Izom lekérése
@@ -1173,6 +1249,8 @@ paths:
                 $ref: '#/components/schemas/UserGyakorlat'
         '400':
           description: A gyakorlat már hozzá van rendelve a felhasználóhoz
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A gyakorlat vagy a felhasználó nem található
       security:
@@ -1198,6 +1276,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserGyakorlat'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Új edzés history bejegyzés létrehozása
@@ -1251,6 +1331,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserGyakorlatokResponseDto'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
       security:
         - access-token: []
       summary: Felhasználó összes gyakorlatának lekérése
@@ -1282,6 +1364,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserGyakorlat'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A gyakorlat nem található a felhasználónál
           content:
@@ -1316,6 +1400,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserGyakorlat'
+        '401':
+          description: Nincs jogosultság a hozzáféréshez
         '404':
           description: A gyakorlat nem található a felhasználónál
           content:
@@ -1683,29 +1769,29 @@ components:
         user_id:
           type: number
           description: Unique identifier of the user
-          example: 37
+          example: 1
         username:
           type: string
           description: Username of the user
-          example: Admin
+          example: ExampleUser
         email:
           type: string
           description: Email address of the user
-          example: admin@gmail.com
+          example: example@gmail.com
         suly:
           type: number
           description: User weight in kilograms
-          example: null
+          example: 80
           nullable: true
         magassag:
           type: number
           description: User height in centimeters
-          example: null
+          example: 180
           nullable: true
         isAdmin:
           type: boolean
           description: Indicates if the user is an administrator
-          example: true
+          example: false
       required:
         - user_id
         - username
@@ -1746,12 +1832,57 @@ components:
           description: IsAdmin?
       required:
         - isAdmin
-    CreateUserDto:
+    UserLogiResponsenDto:
       type: object
-      properties: {}
-    LoginDto:
-      type: object
-      properties: {}
+      properties:
+        user_id:
+          type: number
+          description: Unique identifier of the user
+          example: 1
+        username:
+          type: string
+          description: Username of the user
+          example: ExampleUser
+        email:
+          type: string
+          description: Email address of the user
+          example: example@gmail.com
+        suly:
+          type: number
+          description: User weight in kilograms
+          example: 80
+          nullable: true
+        magassag:
+          type: number
+          description: User height in centimeters
+          example: 180
+          nullable: true
+        isAdmin:
+          type: boolean
+          description: Indicates if the user is an administrator
+          example: false
+        accessToken:
+          type: string
+          description: Access token of the user
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        refreshToken:
+          type: string
+          description: Refresh token of the user
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        expiresIn:
+          type: number
+          description: Token expiration time in seconds
+          example: 3600
+      required:
+        - user_id
+        - username
+        - email
+        - suly
+        - magassag
+        - isAdmin
+        - accessToken
+        - refreshToken
+        - expiresIn
     CreateGyakorlatDto:
       type: object
       properties:

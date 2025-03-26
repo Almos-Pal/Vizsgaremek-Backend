@@ -13,20 +13,24 @@ import { AdminGuard } from 'src/auth/guards/admin.guard';
 @ApiSecurity('access-token')
 @Controller('gyakorlat')
 export class GyakorlatController {
-  constructor(private readonly gyakorlatService: GyakorlatService) {}
+  constructor(private readonly gyakorlatService: GyakorlatService) { }
 
   @UseGuards(JwtGuard, AdminGuard)
   @Post()
   @ApiOperation({ summary: 'Új gyakorlat létrehozása' })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'A gyakorlat sikeresen létrehozva',
     type: Gyakorlat
   })
-  @ApiResponse({ 
-    status: 400, 
+  @ApiResponse({
+    status: 400,
     description: 'Hibás kérés - Érvénytelen adatok vagy izomcsoport azonosítók',
     type: ErrorResponseDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   create(@Body() createGyakorlatDto: CreateGyakorlatDto) {
     return this.gyakorlatService.create(createGyakorlatDto);
@@ -34,19 +38,23 @@ export class GyakorlatController {
 
   @UseGuards(JwtGuard)
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Összes gyakorlat lekérése',
     description: 'Lapozott lista a gyakorlatokról alapvető információkkal (azonosító, név, eszköz és izomcsoportok)'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Lapozott gyakorlat lista',
     type: GyakorlatokResponseDto
   })
-  @ApiResponse({ 
-    status: 400, 
+  @ApiResponse({
+    status: 400,
     description: 'Hibás kérés - Érvénytelen lekérdezési paraméterek',
     type: ErrorResponseDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   findAll(@Query() query: GetGyakorlatokQueryDto) {
     return this.gyakorlatService.findAll(query);
@@ -55,15 +63,19 @@ export class GyakorlatController {
   @UseGuards(JwtGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Gyakorlat lekérése azonosító alapján' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A kért gyakorlat adatai',
     type: Gyakorlat
   })
-  @ApiResponse({ 
-    status: 404, 
+  @ApiResponse({
+    status: 404,
     description: 'A gyakorlat nem található',
     type: GyakorlatNotFoundDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   async findOne(@Param('id') id: number) {
     const gyakorlat = await this.gyakorlatService.findOne(+id);
@@ -76,20 +88,24 @@ export class GyakorlatController {
   @UseGuards(JwtGuard, AdminGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Gyakorlat módosítása azonosító alapján' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A gyakorlat sikeresen módosítva',
     type: Gyakorlat
   })
-  @ApiResponse({ 
-    status: 404, 
+  @ApiResponse({
+    status: 404,
     description: 'A gyakorlat nem található',
     type: GyakorlatNotFoundDto
   })
-  @ApiResponse({ 
-    status: 400, 
+  @ApiResponse({
+    status: 400,
     description: 'Hibás kérés - Érvénytelen adatok',
     type: ErrorResponseDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   async update(@Param('id') id: number, @Body() updateGyakorlatDto: UpdateGyakorlatDto) {
     const gyakorlat = await this.gyakorlatService.update(+id, updateGyakorlatDto);
@@ -102,15 +118,19 @@ export class GyakorlatController {
   @UseGuards(JwtGuard, AdminGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Gyakorlat törlése azonosító alapján' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A gyakorlat sikeresen törölve',
     type: SuccessResponseDto
   })
-  @ApiResponse({ 
-    status: 404, 
+  @ApiResponse({
+    status: 404,
     description: 'A gyakorlat nem található',
     type: GyakorlatNotFoundDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   async remove(@Param('id') id: number) {
     const deleted = await this.gyakorlatService.remove(+id);

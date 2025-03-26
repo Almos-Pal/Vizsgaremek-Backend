@@ -51,6 +51,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 401, description: 'Invalid Token' })
   @ApiResponse({ status: 403, description: 'Hozzáférés megtagadva - csak Adminok' })
+  
   async findAll(@Query() query: GetUserQueryDto): Promise<UserResponseDto> {
     return this.usersService.findAll(query);
   }

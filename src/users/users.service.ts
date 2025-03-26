@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -16,7 +16,7 @@ export class UsersService {
       const existingUser = await this.findByEmail(createUserDto.email)
 
       if (existingUser) {
-        throw new BadRequestException('Email already in use');
+        throw new ConflictException('Az email cím már használatban van');
       }
 
       const newUser = await this.db.user.create({

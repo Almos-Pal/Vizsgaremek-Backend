@@ -27,6 +27,10 @@ export class IzomcsoportController {
     description: 'Hibás kérés - Érvénytelen lekérdezési paraméterek',
     type: ErrorResponseDto
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
   findAll() {
     return this.izomcsoportService.findAll();
   }

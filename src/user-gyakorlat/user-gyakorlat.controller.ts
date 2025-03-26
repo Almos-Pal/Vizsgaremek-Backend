@@ -12,26 +12,30 @@ import { JwtGuard } from 'src/auth/guards/jwt.guard';
 @ApiSecurity('access-token')
 @Controller('user-gyakorlat')
 export class UserGyakorlatController {
-  constructor(private readonly userGyakorlatService: UserGyakorlatService) {}
+  constructor(private readonly userGyakorlatService: UserGyakorlatService) { }
 
   @UseGuards(JwtGuard)
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Új user-gyakorlat kapcsolat létrehozása',
     description: 'Létrehoz egy új kapcsolatot a felhasználó és egy gyakorlat között'
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'A kapcsolat sikeresen létrehozva',
-    type: UserGyakorlat 
+    type: UserGyakorlat
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'A gyakorlat már hozzá van rendelve a felhasználóhoz' 
+  @ApiResponse({
+    status: 400,
+    description: 'A gyakorlat már hozzá van rendelve a felhasználóhoz'
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'A gyakorlat vagy a felhasználó nem található' 
+  @ApiResponse({
+    status: 404,
+    description: 'A gyakorlat vagy a felhasználó nem található'
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   create(@Body() createUserGyakorlatDto: CreateUserGyakorlatDto) {
     return this.userGyakorlatService.createUserGyakorlat(createUserGyakorlatDto);
@@ -39,14 +43,18 @@ export class UserGyakorlatController {
 
   @UseGuards(JwtGuard)
   @Post('history')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Új edzés history bejegyzés létrehozása',
     description: 'Rögzít egy új edzés eredményt (súly és ismétlésszám) egy gyakorlathoz'
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'A history bejegyzés sikeresen létrehozva',
-    type: UserGyakorlat 
+    type: UserGyakorlat
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   createHistory(@Body() createHistoryDto: CreateUserGyakorlatHistoryDto) {
     return this.userGyakorlatService.createUserGyakorlatHistory(createHistoryDto);
@@ -54,7 +62,7 @@ export class UserGyakorlatController {
 
   @UseGuards(JwtGuard)
   @Get('user/:userId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Felhasználó összes gyakorlatának lekérése',
     description: 'Lekéri az összes gyakorlatot és azok történetét egy adott felhasználóhoz'
   })
@@ -64,10 +72,14 @@ export class UserGyakorlatController {
     type: 'number',
     required: true
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A gyakorlatok sikeresen lekérve',
     type: UserGyakorlatokResponseDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   getUserGyakorlatok(
     @Param('userId') userId: string,
@@ -78,7 +90,7 @@ export class UserGyakorlatController {
 
   @UseGuards(JwtGuard)
   @Get(':userId/:gyakorlatId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Egy konkrét user-gyakorlat részletes adatai',
     description: 'Lekéri egy konkrét gyakorlat részletes adatait és történetét egy felhasználóhoz'
   })
@@ -94,15 +106,19 @@ export class UserGyakorlatController {
     type: 'number',
     required: true
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A gyakorlat adatai sikeresen lekérve',
     type: UserGyakorlat
   })
-  @ApiResponse({ 
-    status: 404, 
+  @ApiResponse({
+    status: 404,
     description: 'A gyakorlat nem található a felhasználónál',
     type: UserGyakorlatNotFoundDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   getUserGyakorlatDetails(
     @Param('userId') userId: string,
@@ -113,7 +129,7 @@ export class UserGyakorlatController {
 
   @UseGuards(JwtGuard)
   @Delete(':userId/:gyakorlatId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Felhasználó gyakorlatának törlése',
     description: 'Törli a kapcsolatot egy felhasználó és egy gyakorlat között'
   })
@@ -129,15 +145,19 @@ export class UserGyakorlatController {
     type: 'number',
     required: true
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'A gyakorlat sikeresen törölve',
     type: UserGyakorlat
   })
-  @ApiResponse({ 
-    status: 404, 
+  @ApiResponse({
+    status: 404,
     description: 'A gyakorlat nem található a felhasználónál',
     type: UserGyakorlatNotFoundDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
   })
   deleteUserGyakorlat(
     @Param('userId') userId: string,

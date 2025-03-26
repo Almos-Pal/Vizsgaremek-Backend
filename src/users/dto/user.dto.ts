@@ -33,41 +33,64 @@ export class GetUserQueryDto extends PaginationQueryDto {
 export class UserDto {
     @ApiProperty({
         description: 'Unique identifier of the user',
-        example: 37,
+        example: 1,
     })
     user_id: number;
 
     @ApiProperty({
         description: 'Username of the user',
-        example: 'Admin',
+        example: 'ExampleUser',
     })
     username: string;
 
     @ApiProperty({
         description: 'Email address of the user',
-        example: 'admin@gmail.com',
+        example: 'example@gmail.com',
     })
     email: string;
 
     @ApiProperty({
         description: 'User weight in kilograms',
-        example: null,
+        example: 80,
         nullable: true,
     })
     suly?: number;
 
     @ApiProperty({
         description: 'User height in centimeters',
-        example: null,
+        example: 180,
         nullable: true,
     })
     magassag?: number;
 
     @ApiProperty({
         description: 'Indicates if the user is an administrator',
-        example: true,
+        example: false,
     })
     isAdmin: boolean;
+}
+
+export class UserLogiResponsenDto extends UserDto {
+
+
+    @ApiProperty({
+        description: 'Access token of the user',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    })
+    accessToken: string;
+
+    @ApiProperty({
+        description: 'Refresh token of the user',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    })
+    refreshToken: string;
+
+    @ApiProperty({
+        description: 'Token expiration time in seconds',
+        example: 3600,
+    })
+    expiresIn: number;
+
 }
 
 export class UserResponseDto {
