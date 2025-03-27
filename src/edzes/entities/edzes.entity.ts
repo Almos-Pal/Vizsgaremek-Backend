@@ -95,6 +95,10 @@ export class Edzes {
     @IsDefined()
     edzes_neve: string;
 
+    @IsString()
+    @IsDefined()
+    user_id: number;
+    
     @ApiProperty({
         description: 'Az edzés dátuma',
         example: '2024-03-15T10:00:00.000Z'

@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { EdzesService } from './edzes.service';
 import { CreateEdzesDto } from './dto/create-edzes.dto';
 import { UpdateEdzesDto } from './dto/update-edzes.dto';
-import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiQuery, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { Edzes } from './entities/edzes.entity';
 import { AddEdzesGyakorlatDto } from './dto/add-edzes-gyakorlat.dto';
 import { AddEdzesGyakorlatSetDto } from './dto/add-edzes-gyakorlat-set.dto';
@@ -10,12 +10,18 @@ import { UpdateEdzesSetDto } from './dto/update-edzes-set.dto';
 import { GetEdzesekQueryDto } from './dto/get-edzesek.dto';
 import { EdzesekResponseDto } from './dto/edzesek-response.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { UserIdMatchGuard } from 'src/auth/guards/userId.guard';
+import { EdzesOwnerGuard } from 'src/auth/guards/edzesOwner.guard';
+import { CreateEdzesOwnerGuard } from 'src/auth/guards/createEdzes.guard';
 
 @ApiTags('Edzes')
 @Controller('edzes')
+@ApiSecurity('access-token')
 export class EdzesController {
   constructor(private readonly edzesService: EdzesService) { }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('ten')
   @ApiOperation({
     summary: 'A legutóbbi 10 edzés',
@@ -39,6 +45,14 @@ export class EdzesController {
     required: false,
     type: 'boolean'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findTen(
     @Query('userId') userId: number,
     @Query('gyakorlat') gyakorlat: number,
@@ -47,6 +61,8 @@ export class EdzesController {
     return this.edzesService.findTen(userId, gyakorlat, isTemplate);
   }
 
+
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('intervallum')
   @ApiOperation({
     summary: 'Egy user adott intervallumon belüli edzései',
@@ -85,11 +101,20 @@ export class EdzesController {
     status: 404,
     description: 'Az edzések nem találhatóak'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findManyByDate(@Query() query: GetEdzesekQueryDto) {
 
     return this.edzesService.findManyByDate(query);
   }
 
+  @UseGuards(JwtGuard, CreateEdzesOwnerGuard)
   @Post()
   @ApiOperation({
     summary: 'Új edzés létrehozása',
@@ -104,10 +129,19 @@ export class EdzesController {
     status: 404,
     description: 'A felhasználó nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   create(@Body() createEdzesDto: CreateEdzesDto) {
     return this.edzesService.create(createEdzesDto);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Post(':id/gyakorlat/:userId')
   @ApiOperation({
     summary: 'Gyakorlat hozzáadása edzéshez',
@@ -132,6 +166,14 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés vagy a gyakorlat nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   addGyakorlatToEdzes(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
@@ -140,6 +182,7 @@ export class EdzesController {
     return this.edzesService.addGyakorlatToEdzes(id, userId, gyakorlatDto);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Delete(':id/gyakorlat/:gyakorlatId/:userId')
   @ApiOperation({
     summary: 'Gyakorlat törlése edzésből',
@@ -160,15 +203,23 @@ export class EdzesController {
     description: 'A felhasználó azonosítója',
     type: 'number'
   })
-  
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   deleteGyakorlatFromEdzes(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
     @Param('userId', ParseIntPipe) userId: number
   ) {
-      return this.edzesService.deleteGyakorlatFromEdzes(id, gyakorlatId, userId)
+    return this.edzesService.deleteGyakorlatFromEdzes(id, gyakorlatId, userId)
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Post(':id/gyakorlat/:gyakorlatId/set/:userId')
   @ApiOperation({
     summary: 'Szett hozzáadása gyakorlathoz',
@@ -198,6 +249,14 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés, a gyakorlat vagy a felhasználó nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   addSetToEdzesGyakorlat(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
@@ -207,6 +266,7 @@ export class EdzesController {
     return this.edzesService.addSetToEdzesGyakorlat(id, userId, gyakorlatId, setDto);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Patch(':id/gyakorlat/:gyakorlatId/set/:setId/:userId')
   @ApiOperation({
     summary: 'Szett módosítása',
@@ -241,6 +301,14 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés, a gyakorlat vagy a szett nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   updateSet(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
@@ -251,6 +319,7 @@ export class EdzesController {
     return this.edzesService.updateSet(id, userId, gyakorlatId, setId, updateDto);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Delete(':id/gyakorlat/:gyakorlatId/set/:setId/:userId')
   @ApiOperation({
     summary: 'Szett törlése',
@@ -284,6 +353,14 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés, a gyakorlat vagy a szett nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   removeSet(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
@@ -293,6 +370,7 @@ export class EdzesController {
     return this.edzesService.removeSet(id, userId, gyakorlatId, setId);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get()
   @ApiOperation({
     summary: 'Összes edzés lekérése',
@@ -303,49 +381,20 @@ export class EdzesController {
     description: 'Az edzések sikeresen lekérve',
     type: EdzesekResponseDto
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Csak adminok érhetik el az összes edzést'
+  })
   findAll(@Query() query: GetEdzesekQueryDto) {
     return this.edzesService.findAll(query);
   }
 
-  @Get('izomcsoportok')
-  @ApiOperation({
-    summary: 'Edzésekben használt izomcsoportok lekérése',
-    description: 'Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az edzésekben'
-  })
-  @ApiQuery({
-    name: 'user_id',
-    description: 'A felhasználó azonosítója',
-    required: true,
-    type: 'number'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Az izomcsoportok sikeresen lekérve',
-    schema: {
-      type: 'object',
-      properties: {
-        izomcsoportok: {
-          type: 'array',
-          items: { type: 'number' },
-          description: 'Az összes érintett izomcsoport azonosítója'
-        },
-        fo_izomcsoportok: {
-          type: 'array',
-          items: { type: 'number' },
-          description: 'Az összes érintett fő izomcsoport azonosítója'
-        }
-      }
-    }
-  })
-
-  @ApiResponse({
-    status: 400,
-    description: 'Hibás kérés - Érvénytelen felhasználó azonosító'
-  })
-  getEdzesIzomcsoportok(@Query('user_id') userId: number) {
-    return this.edzesService.getEdzesIzomcsoportok(userId);
-  }
-
+  
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('napi')
   @ApiOperation({
     summary: 'Egy user adott napi edzésének részletes adatai',
@@ -378,6 +427,14 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findOneByDate(
     @Query('userId') userId: number,
     @Query('date') date: string,
@@ -386,6 +443,7 @@ export class EdzesController {
     return this.edzesService.findOneByDate(userId, date, isTemplate);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Egy edzés részletes adatai',
@@ -405,10 +463,19 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.findOne(id);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Patch(':id')
   @ApiOperation({
     summary: 'Edzés módosítása',
@@ -428,10 +495,19 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateEdzesDto: UpdateEdzesDto) {
     return this.edzesService.update(id, updateEdzesDto);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Delete(':id')
   @ApiOperation({
     summary: 'Edzés törlése',
@@ -450,10 +526,19 @@ export class EdzesController {
     status: 404,
     description: 'Az edzés nem található'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.remove(id);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Patch(':id/finalize/:userId')
   @ApiOperation({
     summary: 'Edzés véglegesítésének állapotának módosítása',
@@ -482,6 +567,14 @@ export class EdzesController {
     status: 400,
     description: 'Hiba történt az edzés állapotának módosítása során'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   changeEdzesFinalizedStatus(
     @Param('id', ParseIntPipe) edzesId: number,
     @Param('userId', ParseIntPipe) userId: number,
@@ -490,6 +583,7 @@ export class EdzesController {
     return this.edzesService.changeEdzesFinalizedStatus(edzesId, userId, finalized);
   }
 
+  @UseGuards(JwtGuard, CreateEdzesOwnerGuard)
   @Post('template/:templateId/:userId')
   @ApiOperation({
     summary: 'Új edzés létrehozása sablonból',
@@ -518,14 +612,23 @@ export class EdzesController {
     status: 409,
     description: 'Az adott napon már létezik edzés'
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   createFromTemplate(
     @Param('templateId', ParseIntPipe) templateId: number,
     @Param('userId', ParseIntPipe) userId: number,
     @Body("date") date?: string
   ) {
-    return this.edzesService.createEdzesFromTemplate(templateId, userId,date);
+    return this.edzesService.createEdzesFromTemplate(templateId, userId, date);
   }
 
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('current-week/:userId')
   @ApiOperation({
     summary: 'Aktuális heti edzések lekérése',
@@ -571,6 +674,14 @@ export class EdzesController {
   @ApiResponse({
     status: 400,
     description: 'Hibás kérés'
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   getCurrentWeekEdzesek(
     @Param('userId', ParseIntPipe) userId: number,

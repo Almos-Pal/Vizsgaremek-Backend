@@ -29,17 +29,92 @@ export class GetUserQueryDto extends PaginationQueryDto {
     email?: string;
 }
 
-export class UserResponseDto implements PaginatedResponseDto<User> {
+
+export class UserDto {
     @ApiProperty({
-        description: 'User-Gyakorlat kapcsolatok listája',
-        type: () => [User],
-        isArray: true
+        description: 'Unique identifier of the user',
+        example: 1,
     })
-    items: User[] ;
+    user_id: number;
 
     @ApiProperty({
-        description: 'Lapozási metaadatok',
-        type: () => PaginationMetaDto
+        description: 'Username of the user',
+        example: 'ExampleUser',
     })
-    meta: PaginationMetaDto;
-} 
+    username: string;
+
+    @ApiProperty({
+        description: 'Email address of the user',
+        example: 'example@gmail.com',
+    })
+    email: string;
+
+    @ApiProperty({
+        description: 'User weight in kilograms',
+        example: 80,
+        nullable: true,
+    })
+    suly?: number;
+
+    @ApiProperty({
+        description: 'User height in centimeters',
+        example: 180,
+        nullable: true,
+    })
+    magassag?: number;
+
+    @ApiProperty({
+        description: 'Indicates if the user is an administrator',
+        example: false,
+    })
+    isAdmin: boolean;
+}
+
+export class UserLogiResponsenDto extends UserDto {
+
+
+    @ApiProperty({
+        description: 'Access token of the user',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    })
+    accessToken: string;
+
+    @ApiProperty({
+        description: 'Refresh token of the user',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    })
+    refreshToken: string;
+
+    @ApiProperty({
+        description: 'Token expiration time in seconds',
+        example: 3600,
+    })
+    expiresIn: number;
+
+}
+
+export class UserResponseDto {
+    @ApiProperty({
+        description: 'List of users',
+        type: () => [User],
+        isArray: true,
+
+    })
+    items: User[];
+
+    @ApiProperty({
+        description: 'Pagination metadata',
+        example: {
+            currentPage: 1,
+            itemsPerPage: 1,
+            totalItems: 7,
+            totalPages: 7
+        }
+    })
+    meta: {
+        currentPage: number;
+        itemsPerPage: number;
+        totalItems: number;
+        totalPages: number;
+    };
+}
