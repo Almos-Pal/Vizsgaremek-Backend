@@ -21,7 +21,7 @@ import { CreateEdzesOwnerGuard } from 'src/auth/guards/createEdzes.guard';
 export class EdzesController {
   constructor(private readonly edzesService: EdzesService) { }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('ten')
   @ApiOperation({
     summary: 'A legutóbbi 10 edzés',
@@ -357,49 +357,7 @@ export class EdzesController {
     return this.edzesService.findAll(query);
   }
 
-  @UseGuards(JwtGuard)
-  @Get('izomcsoportok')
-  @ApiOperation({
-    summary: 'Edzésekben használt izomcsoportok lekérése',
-    description: 'Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az edzésekben'
-  })
-  @ApiQuery({
-    name: 'user_id',
-    description: 'A felhasználó azonosítója',
-    required: true,
-    type: 'number'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Az izomcsoportok sikeresen lekérve',
-    schema: {
-      type: 'object',
-      properties: {
-        izomcsoportok: {
-          type: 'array',
-          items: { type: 'number' },
-          description: 'Az összes érintett izomcsoport azonosítója'
-        },
-        fo_izomcsoportok: {
-          type: 'array',
-          items: { type: 'number' },
-          description: 'Az összes érintett fő izomcsoport azonosítója'
-        }
-      }
-    }
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Hibás kérés - Érvénytelen felhasználó azonosító'
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Nincs jogosultság a hozzáféréshez'
-  })
-  getEdzesIzomcsoportok(@Query('user_id') userId: number) {
-    return this.edzesService.getEdzesIzomcsoportok(userId);
-  }
-
+  
   @UseGuards(JwtGuard, EdzesOwnerGuard)
   @Get('napi')
   @ApiOperation({

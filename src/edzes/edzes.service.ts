@@ -1060,59 +1060,7 @@ else{
     }
   }
 
-  async getEdzesIzomcsoportok(user_id?: number) {
-    try {
-      if (!user_id) {
-        throw new BadRequestException("Hiányzik az user_id");
-      }
-
-      const edzesek = await this.db.edzes.findMany({
-        where: { user_id },
-        include: {
-          gyakorlatok: {
-            include: {
-              gyakorlat: {
-                include: {
-                  izomcsoportok: {
-                    include: { izomcsoport: true }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      if (edzesek.length === 0) {
-        throw new Error("Nincsenek edzések az adott felhasználóhoz");
-      }
-
-      const izomcsoportMap = new Map<number, string>();
-      const foIzomcsoportMap = new Map<number, string>();
-
-      edzesek.forEach(edzes => {
-        edzes.gyakorlatok.forEach(gyakorlatConn => {
-          const gyakorlat = gyakorlatConn.gyakorlat;
-
-          if (gyakorlat.fo_izomcsoport) {
-            foIzomcsoportMap.set(gyakorlat.fo_izomcsoport, "Fő izomcsoport");
-          }
-
-          gyakorlat.izomcsoportok.forEach(conn => {
-            izomcsoportMap.set(conn.izomcsoport.izomcsoport_id, conn.izomcsoport.nev);
-          });
-        });
-      });
-
-
-      return {
-        izomcsoportok: Array.from(izomcsoportMap.keys()),
-        fo_izomcsoportok: Array.from(foIzomcsoportMap.keys())
-      };
-    } catch (error) {
-      throw new BadRequestException('Hiba az izomcsoportok lekérése során: ' + error.message);
-    }
-  }
+  
 
 
   async removeUserGyakorlat(userId: number, gyakorlatId: number) {
