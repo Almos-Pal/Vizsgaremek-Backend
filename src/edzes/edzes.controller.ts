@@ -49,6 +49,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findTen(
     @Query('userId') userId: number,
     @Query('gyakorlat') gyakorlat: number,
@@ -101,6 +105,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findManyByDate(@Query() query: GetEdzesekQueryDto) {
 
     return this.edzesService.findManyByDate(query);
@@ -124,6 +132,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   create(@Body() createEdzesDto: CreateEdzesDto) {
     return this.edzesService.create(createEdzesDto);
@@ -158,6 +170,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   addGyakorlatToEdzes(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
@@ -190,6 +206,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   deleteGyakorlatFromEdzes(
     @Param('id', ParseIntPipe) id: number,
@@ -232,6 +252,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   addSetToEdzesGyakorlat(
     @Param('id', ParseIntPipe) id: number,
@@ -281,6 +305,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   updateSet(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
@@ -329,6 +357,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   removeSet(
     @Param('id', ParseIntPipe) id: number,
     @Param('gyakorlatId', ParseIntPipe) gyakorlatId: number,
@@ -352,6 +384,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Csak adminok érhetik el az összes edzést'
   })
   findAll(@Query() query: GetEdzesekQueryDto) {
     return this.edzesService.findAll(query);
@@ -395,6 +431,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findOneByDate(
     @Query('userId') userId: number,
     @Query('date') date: string,
@@ -427,6 +467,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.findOne(id);
   }
@@ -455,6 +499,10 @@ export class EdzesController {
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
   })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
+  })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateEdzesDto: UpdateEdzesDto) {
     return this.edzesService.update(id, updateEdzesDto);
   }
@@ -481,6 +529,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.edzesService.remove(id);
@@ -518,6 +570,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   changeEdzesFinalizedStatus(
     @Param('id', ParseIntPipe) edzesId: number,
@@ -559,6 +615,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   createFromTemplate(
     @Param('templateId', ParseIntPipe) templateId: number,
@@ -618,6 +678,10 @@ export class EdzesController {
   @ApiResponse({
     status: 401,
     description: 'Nincs jogosultság a hozzáféréshez'
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'A művelet végrehajtása nem engedélyezett az aktuális felhasználó számára'
   })
   getCurrentWeekEdzesek(
     @Param('userId', ParseIntPipe) userId: number,

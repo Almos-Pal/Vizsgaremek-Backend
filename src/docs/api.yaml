@@ -28,6 +28,10 @@ paths:
       responses:
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
       security:
         - access-token: []
       summary: A legutóbbi 10 edzés
@@ -104,6 +108,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzések nem találhatóak
       security:
@@ -131,6 +139,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: A felhasználó nem található
       security:
@@ -189,6 +201,8 @@ paths:
                 $ref: '#/components/schemas/EdzesekResponseDto'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: Csak adminok érhetik el az összes edzést
       security:
         - access-token: []
       summary: Összes edzés lekérése
@@ -228,6 +242,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés vagy a gyakorlat nem található
       security:
@@ -261,6 +279,10 @@ paths:
       responses:
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
       security:
         - access-token: []
       summary: Gyakorlat törlése edzésből
@@ -306,6 +328,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés, a gyakorlat vagy a felhasználó nem található
       security:
@@ -357,6 +383,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés, a gyakorlat vagy a szett nem található
       security:
@@ -397,51 +427,15 @@ paths:
           description: A szett sikeresen törölve
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés, a gyakorlat vagy a szett nem található
       security:
         - access-token: []
       summary: Szett törlése
-      tags:
-        - Edzes
-  /edzes/izomcsoportok:
-    get:
-      description: >-
-        Lekéri az összes izomcsoportot és fő izomcsoportot, ami szerepel az
-        edzésekben
-      operationId: getEdzesIzomcsoportok
-      parameters:
-        - name: user_id
-          required: true
-          in: query
-          description: A felhasználó azonosítója
-          schema:
-            type: number
-      responses:
-        '200':
-          description: Az izomcsoportok sikeresen lekérve
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  izomcsoportok:
-                    type: array
-                    items:
-                      type: number
-                    description: Az összes érintett izomcsoport azonosítója
-                  fo_izomcsoportok:
-                    type: array
-                    items:
-                      type: number
-                    description: Az összes érintett fő izomcsoport azonosítója
-        '400':
-          description: Hibás kérés - Érvénytelen felhasználó azonosító
-        '401':
-          description: Nincs jogosultság a hozzáféréshez
-      security:
-        - access-token: []
-      summary: Edzésekben használt izomcsoportok lekérése
       tags:
         - Edzes
   /edzes/napi:
@@ -478,6 +472,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés nem található
       security:
@@ -507,6 +505,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés nem található
       security:
@@ -539,6 +541,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés nem található
       security:
@@ -561,6 +567,10 @@ paths:
           description: Az edzés sikeresen törölve
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés nem található
       security:
@@ -598,6 +608,10 @@ paths:
           description: Hiba történt az edzés állapotának módosítása során
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: Az edzés nem található vagy nem tartozik a megadott felhasználóhoz
       security:
@@ -631,6 +645,10 @@ paths:
                 $ref: '#/components/schemas/Edzes'
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
         '404':
           description: A sablon vagy a felhasználó nem található
         '409':
@@ -686,6 +704,10 @@ paths:
           description: Hibás kérés
         '401':
           description: Nincs jogosultság a hozzáféréshez
+        '403':
+          description: >-
+            A művelet végrehajtása nem engedélyezett az aktuális felhasználó
+            számára
       security:
         - access-token: []
       summary: Aktuális heti edzések lekérése

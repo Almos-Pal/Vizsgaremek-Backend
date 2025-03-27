@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { EdzesService } from '../../edzes/edzes.service';
 import { Request } from 'express';
@@ -36,12 +37,12 @@ export class EdzesOwnerGuard implements CanActivate {
         throw new NotFoundException(`Nem található edzés a következő azonosítóval: ${edzesId}`);
       }
       if (edzes.user_id !== user.user_id) {
-        throw new UnauthorizedException('A felhasználó nem az edzés tulajdonosa');
+        throw new ForbiddenException('A felhasználó nem az edzés tulajdonosa');
       }
       return true;
     } else if (routeUserId) {
       if (+routeUserId !== user.user_id) {
-        throw new UnauthorizedException('A felhasználó nem jogosult megtekinteni ezeket az edzéseket');
+        throw new ForbiddenException('A felhasználó nem jogosult megtekinteni ezeket az edzéseket');
       }
       return true;
     }
@@ -49,12 +50,12 @@ export class EdzesOwnerGuard implements CanActivate {
     const queryUser = request.query.userId || request.query.user_id;
     if (queryUser) {
       if (+queryUser !== user.user_id) {
-        throw new UnauthorizedException('A felhasználó nem jogosult megtekinteni ezeket az edzéseket');
+        throw new ForbiddenException('A felhasználó nem jogosult megtekinteni ezeket az edzéseket');
       }
       return true;
     } else {
  
-      throw new UnauthorizedException('Csak adminok érhetik el az összes edzést.');
+      throw new ForbiddenException('Csak adminok érhetik el az összes edzést.');
     }
   }
 }
