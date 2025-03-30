@@ -2,9 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma.service';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
+import { GetUserQueryDto } from './dto/user.dto';
 
 jest.mock('bcrypt');
 
@@ -22,6 +23,12 @@ describe('UsersService', () => {
     magassag: 175,
     createdAt: new Date(),
     updatedAt: new Date()
+  };
+
+  const mockAdminUser = {
+    ...mockUser,
+    isAdmin: true,
+    user_id: 2
   };
 
   beforeEach(async () => {
@@ -95,6 +102,79 @@ describe('UsersService', () => {
       mockDb.user.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return all users for admin', async () => {
+      const mockUsers = [mockUser, mockAdminUser];
+      const query: GetUserQueryDto = { page: 1, limit: 10, isAdmin: 'true' };
+      
+      mockDb.user.findMany.mockResolvedValue(mockUsers);
+      mockDb.user.count.mockResolvedValue(2);
+
+      const result = await service.findAll(query);
+
+      expect(result).toBeDefined();
+      expect(result.items).toHaveLength(2);
+      expect(result.meta.totalItems).toBe(2);
+      expect(mockDb.user.findMany).toHaveBeenCalled();
+    });
+
+    it('should return filtered users for non-admin', async () => {
+      const query: GetUserQueryDto = { page: 1, limit: 10, isAdmin: 'false' };
+      
+      mockDb.user.findMany.mockResolvedValue([mockUser]);
+      mockDb.user.count.mockResolvedValue(1);
+
+      const result = await service.findAll(query);
+
+      expect(result).toBeDefined();
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].isAdmin).toBe(false);
+      expect(mockDb.user.findMany).toHaveBeenCalled();
+    });
+  });
+
+  describe('update', () => {
+    it('should update user data', async () => {
+      const updateData = {
+        suly: 75,
+        magassag: 180
+      };
+
+      mockDb.user.findUnique.mockResolvedValue(mockUser);
+      mockDb.user.update.mockResolvedValue({ ...mockUser, ...updateData });
+
+      const result = await service.update(1, updateData);
+
+      expect(result).toBeDefined();
+      expect(result.suly).toBe(updateData.suly);
+      expect(result.magassag).toBe(updateData.magassag);
+    });
+
+    it('should throw NotFoundException when updating non-existent user', async () => {
+      mockDb.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.update(999, { suly: 75 })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('remove', () => {
+    it('should delete a user', async () => {
+      mockDb.user.findUnique.mockResolvedValue(mockUser);
+      mockDb.user.delete.mockResolvedValue(mockUser);
+
+      const result = await service.remove(1);
+
+      expect(result).toBeDefined();
+      expect(mockDb.user.delete).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when deleting non-existent user', async () => {
+      mockDb.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.remove(999)).rejects.toThrow(NotFoundException);
     });
   });
 });

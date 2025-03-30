@@ -108,12 +108,13 @@ describe('GyakorlatController', () => {
 
   describe('create', () => {
     it('should create a new gyakorlat', async () => {
-      const createGyakorlatDto = {
+      const createGyakorlatDto :CreateGyakorlatDto = {
         gyakorlat_neve: 'Test Exercise',
         eszkoz: 'Barbell',
         gyakorlat_leiras: 'Test description',
         fo_izomcsoport: 1,
-        user_id: 1
+        user_id: 1,
+        izomcsoportok: []
       };
 
       mockGyakorlatService.create.mockResolvedValue(createGyakorlatDto);
