@@ -3,6 +3,8 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '../auth/auth.guard';
+import { ExecutionContext } from '@nestjs/common';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -19,6 +21,14 @@ describe('UsersController', () => {
   const mockJwtService = {
     sign: jest.fn(),
     verify: jest.fn(),
+  };
+
+  const mockAuthGuard = {
+    canActivate: (context: ExecutionContext) => {
+      const req = context.switchToHttp().getRequest();
+      req.user = { user_id: 1, username: 'testuser' };
+      return true;
+    },
   };
 
   beforeEach(async () => {
@@ -39,6 +49,10 @@ describe('UsersController', () => {
         {
           provide: JwtService,
           useValue: mockJwtService,
+        },
+        {
+          provide: AuthGuard,
+          useValue: mockAuthGuard,
         },
       ],
     }).compile();
