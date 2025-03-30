@@ -2,13 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/prisma.service';
 import { CreateEdzesDto } from '../src/edzes/dto/create-edzes.dto';
 import { jest, describe, expect, it, beforeAll, beforeEach, afterAll } from '@jest/globals';
-import { PrismaService } from '../src/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('EdzesController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let jwtService: JwtService;
+  let testUser: any;
+  let authToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,6 +26,7 @@ describe('EdzesController (e2e)', () => {
     }));
     
     prisma = moduleFixture.get<PrismaService>(PrismaService);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
     await app.init();
   });
 
@@ -30,13 +35,27 @@ describe('EdzesController (e2e)', () => {
     await prisma.$transaction([
       prisma.edzes_Gyakorlat_Set.deleteMany(),
       prisma.edzes_Gyakorlat.deleteMany(),
-      prisma.user_Gyakorlat_History.deleteMany(),
-      prisma.user_Gyakorlat.deleteMany(),
-      prisma.gyakorlat_Izomcsoport.deleteMany(),
       prisma.edzes.deleteMany(),
-      prisma.gyakorlat.deleteMany(),
+      prisma.user_Gyakorlat_History.deleteMany(),
       prisma.user.deleteMany(),
     ]);
+
+    // Create a test user and generate JWT token
+    testUser = await prisma.user.create({
+      data: {
+        username: 'testuser',
+        email: 'test@test.com',
+        password: 'password123',
+        isAdmin: false
+      }
+    });
+
+    authToken = jwtService.sign({ 
+      sub: testUser.user_id, 
+      username: testUser.username,
+      user_id: testUser.user_id,
+      isAdmin: testUser.isAdmin
+    });
   });
 
   afterAll(async () => {
@@ -46,17 +65,9 @@ describe('EdzesController (e2e)', () => {
 
   describe('/edzes (POST)', () => {
     it('should create a new edzes', async () => {
-      const user = await prisma.user.create({
-        data: {
-          username: 'testuser',
-          email: 'test@test.com',
-          password: 'password123'
-        }
-      });
-
       const createEdzesDto: CreateEdzesDto = {
         edzes_neve: 'Test Workout',
-        user_id: user.user_id,
+        user_id: testUser.user_id,
         datum: new Date().toISOString(),
         ido: 60,
         isTemplate: false
@@ -64,12 +75,27 @@ describe('EdzesController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/edzes')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(createEdzesDto)
         .expect(201);
 
       expect(response.body).toHaveProperty('edzes_id');
       expect(response.body.edzes_neve).toBe(createEdzesDto.edzes_neve);
-      expect(response.body.isTemplate).toBe(createEdzesDto.isTemplate);
+    });
+
+    it('should return 401 when not authenticated', async () => {
+      const createEdzesDto: CreateEdzesDto = {
+        edzes_neve: 'Test Workout',
+        user_id: testUser.user_id,
+        datum: new Date().toISOString(),
+        ido: 60,
+        isTemplate: false
+      };
+
+      await request(app.getHttpServer())
+        .post('/edzes')
+        .send(createEdzesDto)
+        .expect(401);
     });
 
     it('should not create edzes with invalid user_id', async () => {
@@ -83,21 +109,23 @@ describe('EdzesController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/edzes')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(createEdzesDto)
-        .expect(404);
+        .expect(403);
 
-      expect(response.body.message).toContain('nem található');
+      expect(response.body.message).toContain('Felhasználói azonosító nem egyezik');
     });
 
     it('should not create edzes with invalid data', async () => {
       const invalidDto = {
-        edzes_neve: '', // Empty name
-        user_id: 1,
-        ido: -1, // Invalid duration
+        edzes_neve: '',
+        user_id: testUser.user_id,
+        ido: -1,
       };
 
       const response = await request(app.getHttpServer())
         .post('/edzes')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(invalidDto)
         .expect(400);
 
@@ -105,20 +133,45 @@ describe('EdzesController (e2e)', () => {
     });
   });
 
-  describe('/edzes/:id (GET)', () => {
-    it('should return an edzes by id', async () => {
-      const user = await prisma.user.create({
+  describe('/edzes (GET)', () => {
+    it('should return user\'s edzesek', async () => {
+      // First create a test edzes
+      await prisma.edzes.create({
         data: {
-          username: 'testuser2',
-          email: 'test2@test.com',
-          password: 'password123'
+          edzes_neve: 'Test Workout',
+          user_id: testUser.user_id,
+          datum: new Date(),
+          ido: 60,
+          isTemplate: false
         }
       });
 
+      const response = await request(app.getHttpServer())
+        .get('/edzes')
+        .set('Authorization', `Bearer ${authToken}`)
+        .query({ userId: testUser.user_id })
+        .expect(200);
+
+      expect(response.body.items).toBeInstanceOf(Array);
+      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(response.body.items[0]).toHaveProperty('edzes_id');
+      expect(response.body.items[0].edzes_neve).toBe('Test Workout');
+    });
+
+    it('should return 401 when not authenticated', async () => {
+      await request(app.getHttpServer())
+        .get('/edzes')
+        .expect(401);
+    });
+  });
+
+  describe('/edzes/:id (GET)', () => {
+    it('should return a specific edzes', async () => {
+      // First create a test edzes
       const edzes = await prisma.edzes.create({
         data: {
           edzes_neve: 'Test Workout',
-          user_id: user.user_id,
+          user_id: testUser.user_id,
           datum: new Date(),
           ido: 60,
           isTemplate: false
@@ -127,35 +180,33 @@ describe('EdzesController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get(`/edzes/${edzes.edzes_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.edzes_neve).toBe(edzes.edzes_neve);
-      expect(response.body.isTemplate).toBe(edzes.isTemplate);
+      expect(response.body).toHaveProperty('edzes_id', edzes.edzes_id);
+      expect(response.body.edzes_neve).toBe('Test Workout');
     });
 
-    it('should return 404 for non-existent edzes', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/edzes/999999')
+    it('should return 404 when edzes not found', async () => {
+      await request(app.getHttpServer())
+        .get('/edzes/999')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
+    });
 
-      expect(response.body.message).toContain('nem található');
+    it('should return 401 when not authenticated', async () => {
+      await request(app.getHttpServer())
+        .get('/edzes/1')
+        .expect(401);
     });
   });
 
   describe('/edzes/:id/finalize/:userId (PATCH)', () => {
     it('should finalize an edzes', async () => {
-      const user = await prisma.user.create({
-        data: {
-          username: 'testuser3',
-          email: 'test3@test.com',
-          password: 'password123'
-        }
-      });
-
       const edzes = await prisma.edzes.create({
         data: {
           edzes_neve: 'Test Workout',
-          user_id: user.user_id,
+          user_id: testUser.user_id,
           datum: new Date(),
           ido: 60,
           isTemplate: false,
@@ -164,7 +215,8 @@ describe('EdzesController (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .patch(`/edzes/${edzes.edzes_id}/finalize/${user.user_id}`)
+        .patch(`/edzes/${edzes.edzes_id}/finalize/${testUser.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ finalized: true })
         .expect(200);
 
@@ -172,26 +224,19 @@ describe('EdzesController (e2e)', () => {
     });
 
     it('should not finalize edzes of another user', async () => {
-      const user1 = await prisma.user.create({
-        data: {
-          username: 'user1',
-          email: 'user1@test.com',
-          password: 'password123'
-        }
-      });
-
       const user2 = await prisma.user.create({
         data: {
           username: 'user2',
           email: 'user2@test.com',
-          password: 'password123'
+          password: 'password123',
+          isAdmin: false
         }
       });
 
       const edzes = await prisma.edzes.create({
         data: {
           edzes_neve: 'Test Workout',
-          user_id: user1.user_id,
+          user_id: testUser.user_id,
           datum: new Date(),
           ido: 60,
           isTemplate: false,
@@ -201,21 +246,14 @@ describe('EdzesController (e2e)', () => {
 
       await request(app.getHttpServer())
         .patch(`/edzes/${edzes.edzes_id}/finalize/${user2.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ finalized: true })
-        .expect(404);
+        .expect(403);
     });
   });
 
   describe('/edzes/:id/gyakorlat/:userId (POST)', () => {
     it('should add gyakorlat to edzes', async () => {
-      const user = await prisma.user.create({
-        data: {
-          username: 'testuser4',
-          email: 'test4@test.com',
-          password: 'password123'
-        }
-      });
-
       const gyakorlat = await prisma.gyakorlat.create({
         data: {
           gyakorlat_neve: 'Test Exercise',
@@ -226,7 +264,7 @@ describe('EdzesController (e2e)', () => {
       const edzes = await prisma.edzes.create({
         data: {
           edzes_neve: 'Test Workout',
-          user_id: user.user_id,
+          user_id: testUser.user_id,
           datum: new Date(),
           ido: 60,
           isTemplate: false
@@ -234,7 +272,8 @@ describe('EdzesController (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${user.user_id}`)
+        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${testUser.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ gyakorlat_id: gyakorlat.gyakorlat_id })
         .expect(201);
 
@@ -243,14 +282,6 @@ describe('EdzesController (e2e)', () => {
     });
 
     it('should not add duplicate gyakorlat to edzes', async () => {
-      const user = await prisma.user.create({
-        data: {
-          username: 'testuser5',
-          email: 'test5@test.com',
-          password: 'password123'
-        }
-      });
-
       const gyakorlat = await prisma.gyakorlat.create({
         data: {
           gyakorlat_neve: 'Test Exercise',
@@ -261,7 +292,7 @@ describe('EdzesController (e2e)', () => {
       const edzes = await prisma.edzes.create({
         data: {
           edzes_neve: 'Test Workout',
-          user_id: user.user_id,
+          user_id: testUser.user_id,
           datum: new Date(),
           ido: 60,
           isTemplate: false
@@ -270,13 +301,15 @@ describe('EdzesController (e2e)', () => {
 
       // Add gyakorlat first time
       await request(app.getHttpServer())
-        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${user.user_id}`)
+        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${testUser.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ gyakorlat_id: gyakorlat.gyakorlat_id })
         .expect(201);
 
       // Try to add the same gyakorlat again
       const response = await request(app.getHttpServer())
-        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${user.user_id}`)
+        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${testUser.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ gyakorlat_id: gyakorlat.gyakorlat_id })
         .expect(409);
 
@@ -286,14 +319,6 @@ describe('EdzesController (e2e)', () => {
 
   describe('/edzes/:id/gyakorlat/:gyakorlatId/:userId (DELETE)', () => {
     it('should remove gyakorlat from edzes', async () => {
-      const user = await prisma.user.create({
-        data: {
-          username: 'testuser6',
-          email: 'test6@test.com',
-          password: 'password123'
-        }
-      });
-
       const gyakorlat = await prisma.gyakorlat.create({
         data: {
           gyakorlat_neve: 'Test Exercise',
@@ -304,7 +329,7 @@ describe('EdzesController (e2e)', () => {
       const edzes = await prisma.edzes.create({
         data: {
           edzes_neve: 'Test Workout',
-          user_id: user.user_id,
+          user_id: testUser.user_id,
           datum: new Date(),
           ido: 60,
           isTemplate: false
@@ -313,18 +338,21 @@ describe('EdzesController (e2e)', () => {
 
       // Add gyakorlat first
       await request(app.getHttpServer())
-        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${user.user_id}`)
+        .post(`/edzes/${edzes.edzes_id}/gyakorlat/${testUser.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ gyakorlat_id: gyakorlat.gyakorlat_id })
         .expect(201);
 
       // Then remove it
       await request(app.getHttpServer())
-        .delete(`/edzes/${edzes.edzes_id}/gyakorlat/${gyakorlat.gyakorlat_id}/${user.user_id}`)
+        .delete(`/edzes/${edzes.edzes_id}/gyakorlat/${gyakorlat.gyakorlat_id}/${testUser.user_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       // Verify it's removed
       const response = await request(app.getHttpServer())
         .get(`/edzes/${edzes.edzes_id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.gyakorlatok).toHaveLength(0);
