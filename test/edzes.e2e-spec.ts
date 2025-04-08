@@ -32,11 +32,13 @@ describe('EdzesController (e2e)', () => {
 
   beforeEach(async () => {
     // Clean up the database before each test
+    
     await prisma.$transaction([
       prisma.edzes_Gyakorlat_Set.deleteMany(),
       prisma.edzes_Gyakorlat.deleteMany(),
-      prisma.edzes.deleteMany(),
       prisma.user_Gyakorlat_History.deleteMany(),
+      prisma.user_Gyakorlat.deleteMany(), 
+      prisma.edzes.deleteMany(),
       prisma.user.deleteMany(),
     ]);
 
