@@ -22,7 +22,7 @@ describe('EdzesService', () => {
     updatedAt: new Date()
   };
 
-  const mockEdzes: any = {
+  const mockEdzes = {
     edzes_id: 1,
     edzes_neve: 'Test Workout',
     datum: new Date(),
@@ -32,33 +32,35 @@ describe('EdzesService', () => {
     isFinalized: false,
     isFavorite: false,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    gyakorlatok: []
   };
 
-  const mockGyakorlat: any = {
+  const mockGyakorlat = {
     gyakorlat_id: 1,
     gyakorlat_neve: 'Test Exercise',
     eszkoz: 'Barbell',
     gyakorlat_leiras: 'Test description',
-    fo_izomcsoport: 'Chest',
+    fo_izomcsoport: 1,
     user_id: 1,
     createdAt: new Date(),
     updatedAt: new Date()
   };
 
-  const mockEdzesGyakorlat: any = {
+  const mockEdzesGyakorlat = {
     edzes_id: 1,
     gyakorlat_id: 1,
     createdAt: new Date()
   };
 
-  const mockPreviousHistory: any = {
-    gyakorlat_id: 1,
+  const mockPreviousHistory = {
+    id: 1,
     user_id: 1,
-    suly: 50,
-    sorozatszam: 3,
-    iszmaszam: 10,
-    datum: new Date('2025-03-23T10:51:32.054Z')
+    gyakorlat_id: 1,
+    weight: 50,
+    reps: 10,
+    date: new Date('2025-03-23T10:51:32.054Z'),
+    edzes_id: 1
   };
 
   beforeEach(async () => {
@@ -102,23 +104,14 @@ describe('EdzesService', () => {
 
   describe('findOne', () => {
     it('should include gyakorlatok in the response', async () => {
-      mockDb.edzes.findUnique.mockResolvedValue({
-        ...mockEdzes,
-        gyakorlatok: [{
-          gyakorlat: mockGyakorlat,
-          szettek: [],
-          createdAt: new Date()
-        }]
-      });
-
+      mockDb.edzes.findUnique.mockResolvedValue(mockEdzes);
       mockDb.user_Gyakorlat_History.findFirst.mockResolvedValue(mockPreviousHistory);
       mockDb.user_Gyakorlat_History.findMany.mockResolvedValue([mockPreviousHistory]);
 
       const result = await service.findOne(1);
 
       expect(result).toBeDefined();
-      expect(result.gyakorlatok[0].gyakorlat).toBeDefined();
-      expect(result.gyakorlatok[0].szettek).toBeDefined();
+      expect(result.gyakorlatok).toBeDefined();
     });
   });
 

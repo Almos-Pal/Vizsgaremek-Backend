@@ -1122,7 +1122,7 @@ else{
   async changeEdzesFinalizedStatus(edzesId: number, userId: number, finalized: boolean) {
     console.log(edzesId, userId)
     try {
-      const edzes = await this.db.edzes.findUnique({
+      const edzes = await this.db.edzes.findFirst({
         where: {
           edzes_id: edzesId,
           user_id: userId
@@ -1130,7 +1130,7 @@ else{
       });
 
       if (!edzes) {
-        throw new NotFoundException(`Az edzés (ID: ${edzesId}) nem található, vagy nem tartozik a(z) ${userId} felhasználóhoz.`);
+        throw new ForbiddenException(`A felhasználó nem jogosult az edzés módosítására.`);
       }
 
       const updatedEdzes = await this.db.edzes.update({
@@ -1140,13 +1140,12 @@ else{
         }
       });
       
-
       // Kiszűrjük a user adatokat
       const { user_id, ...result } = updatedEdzes;
       return result;
 
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (error instanceof ForbiddenException) {
         throw error;
       }
       throw new BadRequestException('Hiba történt az edzés állapotának módosítása során: ' + error.message);

@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IzomcsoportController } from './izomcsoport.controller';
 import { IzomcsoportService } from './izomcsoport.service';
 import { PrismaService } from '../prisma.service';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '../auth/auth.guard';
+import { ExecutionContext } from '@nestjs/common';
 
 describe('IzomcsoportController', () => {
   let controller: IzomcsoportController;
@@ -9,6 +12,19 @@ describe('IzomcsoportController', () => {
 
   const mockIzomcsoportService = {
     findAll: jest.fn(),
+  };
+
+  const mockJwtService = {
+    sign: jest.fn(),
+    verify: jest.fn(),
+  };
+
+  const mockAuthGuard = {
+    canActivate: (context: ExecutionContext) => {
+      const req = context.switchToHttp().getRequest();
+      req.user = { user_id: 1, username: 'testuser' };
+      return true;
+    },
   };
 
   beforeEach(async () => {
@@ -25,6 +41,14 @@ describe('IzomcsoportController', () => {
             $connect: jest.fn(),
             $disconnect: jest.fn(),
           },
+        },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
+        {
+          provide: AuthGuard,
+          useValue: mockAuthGuard,
         },
       ],
     }).compile();

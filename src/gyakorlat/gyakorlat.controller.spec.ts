@@ -5,6 +5,10 @@ import { CreateGyakorlatDto } from './dto/create-gyakorlat.dto';
 import { UpdateGyakorlatDto } from './dto/update-gyakorlat.dto';
 import { GetGyakorlatokQueryDto } from './dto/gyakorlatok.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '../auth/auth.guard';
+import { ExecutionContext } from '@nestjs/common';
 
 // Mock data
 const mockGyakorlatok = [
@@ -51,18 +55,46 @@ const mockGyakorlatService = {
   remove: jest.fn()
 };
 
+const mockJwtService = {
+  sign: jest.fn(),
+  verify: jest.fn(),
+};
+
+const mockAuthGuard = {
+  canActivate: (context: ExecutionContext) => {
+    const req = context.switchToHttp().getRequest();
+    req.user = { user_id: 1, username: 'testuser' };
+    return true;
+  },
+};
+
 describe('GyakorlatController', () => {
   let controller: GyakorlatController;
   let service: GyakorlatService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [GyakorlatController,],
+      controllers: [GyakorlatController],
       providers: [
         {
           provide: GyakorlatService,
-          useValue: mockGyakorlatService
-        }
+          useValue: mockGyakorlatService,
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            $connect: jest.fn(),
+            $disconnect: jest.fn(),
+          },
+        },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
+        {
+          provide: AuthGuard,
+          useValue: mockAuthGuard,
+        },
       ],
     }).compile();
 
@@ -76,26 +108,20 @@ describe('GyakorlatController', () => {
 
   describe('create', () => {
     it('should create a new gyakorlat', async () => {
-      const createDto: CreateGyakorlatDto = {
-        gyakorlat_neve: 'Új gyakorlat',
-        eszkoz: 'Súlyzó',
-        gyakorlat_leiras: 'Új gyakorlat leírása',
-        fo_izomcsoport: 4,
-        izomcsoportok: [4, 2],
-        user_id: 1
+      const createGyakorlatDto :CreateGyakorlatDto = {
+        gyakorlat_neve: 'Test Exercise',
+        eszkoz: 'Barbell',
+        gyakorlat_leiras: 'Test description',
+        fo_izomcsoport: 1,
+        user_id: 1,
+        izomcsoportok: []
       };
 
-      const expectedResult = {
-        gyakorlat_id: 4,
-        ...createDto
-      };
+      mockGyakorlatService.create.mockResolvedValue(createGyakorlatDto);
 
-      mockGyakorlatService.create.mockResolvedValue(expectedResult);
-
-      const result = await controller.create(createDto);
-
-      expect(result).toEqual(expectedResult);
-      expect(mockGyakorlatService.create).toHaveBeenCalledWith(createDto);
+      const result = await controller.create(createGyakorlatDto);
+      expect(result).toEqual(createGyakorlatDto);
+      expect(mockGyakorlatService.create).toHaveBeenCalledWith(createGyakorlatDto);
     });
 
     it('should handle validation errors during creation', async () => {

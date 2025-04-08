@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EdzesController } from './edzes.controller';
 import { EdzesService } from './edzes.service';
 import { PrismaService } from '../prisma.service';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '../auth/auth.guard';
+import { ExecutionContext } from '@nestjs/common';
 
 describe('EdzesController', () => {
   let controller: EdzesController;
@@ -18,6 +21,19 @@ describe('EdzesController', () => {
     changeEdzesFinalizedStatus: jest.fn(),
   };
 
+  const mockJwtService = {
+    sign: jest.fn(),
+    verify: jest.fn(),
+  };
+
+  const mockAuthGuard = {
+    canActivate: (context: ExecutionContext) => {
+      const req = context.switchToHttp().getRequest();
+      req.user = { user_id: 1, username: 'testuser' };
+      return true;
+    },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EdzesController],
@@ -32,6 +48,14 @@ describe('EdzesController', () => {
             $connect: jest.fn(),
             $disconnect: jest.fn(),
           },
+        },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
+        {
+          provide: AuthGuard,
+          useValue: mockAuthGuard,
         },
       ],
     }).compile();

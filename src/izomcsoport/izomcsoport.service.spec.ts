@@ -1,30 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IzomcsoportService } from './izomcsoport.service';
 import { PrismaService } from '../prisma.service';
+import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 
 describe('IzomcsoportService', () => {
   let service: IzomcsoportService;
-  let prismaService: PrismaService;
-
-  const mockPrismaService = {
-    izomcsoport: {
-      findMany: jest.fn(),
-    },
-  };
+  let mockDb: DeepMockProxy<PrismaService>;
 
   beforeEach(async () => {
+    mockDb = mockDeep<PrismaService>();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IzomcsoportService,
         {
           provide: PrismaService,
-          useValue: mockPrismaService,
+          useValue: mockDb,
         },
       ],
     }).compile();
 
     service = module.get<IzomcsoportService>(IzomcsoportService);
-    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -37,11 +33,11 @@ describe('IzomcsoportService', () => {
         { izomcsoport_id: 1, nev: 'Test Izomcsoport 1' },
         { izomcsoport_id: 2, nev: 'Test Izomcsoport 2' },
       ];
-      mockPrismaService.izomcsoport.findMany.mockResolvedValue(mockIzomcsoportok);
+      mockDb.izomcsoport.findMany.mockResolvedValue(mockIzomcsoportok);
 
       const result = await service.findAll();
       expect(result).toEqual(mockIzomcsoportok);
-      expect(mockPrismaService.izomcsoport.findMany).toHaveBeenCalled();
+      expect(mockDb.izomcsoport.findMany).toHaveBeenCalled();
     });
   });
 });
