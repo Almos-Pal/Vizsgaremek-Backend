@@ -8,9 +8,12 @@ A **RepVault** célja, hogy egy könnyen használható, ingyenes edzéskövető 
 
 Ez a repository a projekt **backend** részét tartalmazza.
 
-- 📄 **Adatbázis dump fájl**: [Dump fájl letöltése](https://github.com/felhasznalonev/repvault-repo/blob/main/path_to_dump_file.sql)
-- 📘 **Teljes projekt dokumentációja**: [Dokumentáció megtekintése](https://github.com/felhasznalonev/repvault-repo/blob/main/path_to_documentation.pdf)
-- 💻 **Backend forráskódja**: [Backend kód](https://github.com/felhasznalonev/repvault-repo)
+- 📄 **Adatbázis dump fájl**: [Dump fájl letöltése](https://github.com/Almos-Pal/Vizsgaremek-Backend/blob/main/repvault.sql)
+- 📘 **Teljes projekt dokumentációja**: [Dokumentáció megtekintése](https://github.com/Almos-Pal/Vizsgaremek-Backend/blob/main/repVaultDokumentacio.pdf)
+- 💻 **Backend forráskódja**: [Backend kód](https://github.com/Almos-Pal/Vizsgaremek-Backend)
+- ⚛ A Frontend elérhető itt: [Frontend kód](https://github.com/Almos-Pal/Vizsgaremek-Frontend)
+
+---
 
 A frontend elérhető itt: [RepVault Frontend](https://github.com/Almos-Pal/Vizsgaremek-Frontend)
 
