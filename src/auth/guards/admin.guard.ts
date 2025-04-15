@@ -1,5 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
-import { Request } from 'express';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  ForbiddenException,
+} from "@nestjs/common";
+import { Request } from "express";
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -9,7 +14,6 @@ export class AdminGuard implements CanActivate {
     if (user && user.isAdmin) {
       return true;
     }
-    console.log('user.isAdmin:', user ? user : 'undefined');
-    throw new ForbiddenException('Hozzáférés megtagadva - csak Adminok');
+    throw new ForbiddenException("Hozzáférés megtagadva - csak Adminok");
   }
 }
