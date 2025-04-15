@@ -85,7 +85,6 @@ async function main() {
             gyakorlat_neve: line.name,
             eszkoz: line.equipment,
             gyakorlat_leiras: cleanInstructions(cleanedInstructions),
-            user_id: 0,
             fo_izomcsoport: parseInt(line.primaryMuscle.replace(/\D/g, "")),
           },
         });
@@ -110,15 +109,15 @@ async function main() {
                 },
               });
             } catch (error) {
-              console.error(
-                `Error creating gyakorlat_Izomcsoport for ID ${id}:`,
-                error
-              );
+              // console.error(
+              //   `Error creating gyakorlat_Izomcsoport for ID ${id}:`,
+              //   error
+              // );
             }
           }
         }
       } catch (error) {
-        console.error(`Error inserting row:`, error);
+        //console.error(`Error inserting row:`, error);
       }
     }
     await prisma.gyakorlat.findMany();
@@ -126,6 +125,7 @@ async function main() {
     console.error("Error during seeding:", error);
   } finally {
     await prisma.$disconnect();
+    console.log("Seeding completed successfully.");
   }
 }
 

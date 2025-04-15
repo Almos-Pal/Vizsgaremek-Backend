@@ -102,7 +102,7 @@ export class GyakorlatService {
       eszkoz: gyakorlat.eszkoz,
       gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
       fo_izomcsoport: gyakorlat.fo_izomcsoport,
-      user_id: gyakorlat.user_id,
+ 
       izomcsoportok: gyakorlat.izomcsoportok.map(
         (ig) => ig.izomcsoport.izomcsoport_id
       ),
@@ -217,7 +217,7 @@ export class GyakorlatService {
         eszkoz: gyakorlat.eszkoz,
         gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
         fo_izomcsoport: gyakorlat.fo_izomcsoport,
-        user_id: gyakorlat.user_id,
+     
         izomcsoportok: gyakorlat.izomcsoportok.map(
           (ig) => ig.izomcsoport.izomcsoport_id
         ),
@@ -291,7 +291,7 @@ export class GyakorlatService {
           eszkoz: updateGyakorlatDto.eszkoz,
           gyakorlat_leiras: updateGyakorlatDto.gyakorlat_leiras,
           fo_izomcsoport: updateGyakorlatDto.fo_izomcsoport,
-          user_id: updateGyakorlatDto.user_id,
+      
           izomcsoportok: updateGyakorlatDto.izomcsoportok
             ? {
                 deleteMany: {},
@@ -324,7 +324,6 @@ export class GyakorlatService {
         eszkoz: gyakorlat.eszkoz,
         gyakorlat_leiras: gyakorlat.gyakorlat_leiras,
         fo_izomcsoport: gyakorlat.fo_izomcsoport,
-        user_id: gyakorlat.user_id,
         izomcsoportok: gyakorlat.izomcsoportok.map(
           (ig) => ig.izomcsoport.izomcsoport_id
         ),

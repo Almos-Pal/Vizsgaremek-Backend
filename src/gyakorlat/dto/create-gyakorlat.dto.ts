@@ -38,16 +38,6 @@ export class CreateGyakorlatDto {
     fo_izomcsoport?: number;
 
     @ApiProperty({
-        example: 1,
-        description: 'A felhasználó azonosítója',
-        required: false,
-        nullable: true
-    })
-    @IsNumber()
-    @IsOptional()
-    user_id: number;
-
-    @ApiProperty({
         example: [1, 2, 3],
         description: 'Az érintett izomcsoportok azonosítói',
         type: [Number]

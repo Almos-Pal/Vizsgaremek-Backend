@@ -30,7 +30,6 @@ model Gyakorlat {
   eszkoz           String?
   gyakorlat_leiras String?
   fo_izomcsoport   Int?
-  user_id          Int?                      // Optional: creator of the exercise
   users            User_Gyakorlat[]          // Users who have used this exercise
   edzesek          Edzes_Gyakorlat[]        // Exercise instances in workouts
   izomcsoportok    Gyakorlat_Izomcsoport[]  // Exercise muscle groups
